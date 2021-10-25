@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="repository.scarwizard" name="[COLOR orange][B]Scar[/B][/COLOR]Wizard Repository" version="2.3" provider-name="Macaulay">
+<addon id="repository.scarwizard" name="[COLOR orange][B]Scar[/B][/COLOR]Wizard Repository" version="2.4" provider-name="Macaulay">
     <extension point="xbmc.addon.repository" name="[COLOR orange][B]Scar[/B][/COLOR]Wizard Repository">    
 		<dir>
             <info compressed="false">https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/repo/zips/addons.xml</info>
