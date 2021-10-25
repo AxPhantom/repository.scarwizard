@@ -1,6 +1,4 @@
-# OpenWizard Repository
-
-The official home of OpenWizard.
+# jurialmunkey Alpha Repository
 
 Kodi File Manager Source:
-https://a4k-openproject.github.io/repository.openwizard/
+https://jurialmunkey.github.io/repository.jurialmunkey/
