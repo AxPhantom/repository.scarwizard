@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="repository.scarwizard" name="ScarWizard Repo" version="2.7" provider-name="Macaulay">
+<addon id="repository.scarwizard" name="ScarWizard Repo" version="2.8" provider-name="Macaulay">
     <extension point="xbmc.addon.repository" name="ScarWizard Repo">
         <dir>
-            <info compressed="false">https://raw.githubusercontent.com/axphantom/repository.scarwizard/master/repo/zips/addons.xml</info>
-            <checksum>https://raw.githubusercontent.com/axphantom/repository.scarwizard/master/repo/zips/addons.xml.md5</checksum>
-            <datadir zip="true">https://raw.githubusercontent.com/axphantom/repository.scarwizard/master/repo/zips/</datadir>
+            <info compressed="false">https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/repo/zips/addons.xml</info>
+            <checksum>https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/repo/zips/addons.xml.md5</checksum>
+            <datadir zip="true">https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/repo/zips/</datadir>
         </dir>
 		<dir minversion="18.0" maxversion="18.9.0">
-            <info compressed="false">https://raw.githubusercontent.com/axphantom/repository.scarwizard/master/leia/zips/addons.xml</info>
-            <checksum>https://raw.githubusercontent.com/axphantom/repository.scarwizard/master/leia/zips/addons.xml.md5</checksum>
-            <datadir zip="true">https://raw.githubusercontent.com/axphantom/repository.scarwizard/master/leia/zips/</datadir>
+            <info compressed="false">https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/leia/zips/addons.xml</info>
+            <checksum>https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/leia/zips/addons.xml.md5</checksum>
+            <datadir zip="true">https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/leia/zips/</datadir>
         </dir>
         <dir minversion="18.9.0">
-            <info compressed="false">https://raw.githubusercontent.com/axphantom/repository.scarwizard/master/matrix/zips/addons.xml</info>
-            <checksum>https://raw.githubusercontent.com/axphantom/repository.scarwizard/master/matrix/zips/addons.xml.md5</checksum>
-            <datadir zip="true">https://raw.githubusercontent.com/axphantom/repository.scarwizard/master/matrix/zips/</datadir>
+            <info compressed="false">https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/matrix/zips/addons.xml</info>
+            <checksum>https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/matrix/zips/addons.xml.md5</checksum>
+            <datadir zip="true">https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/matrix/zips/</datadir>
         </dir>
     </extension>
     <extension point="xbmc.addon.metadata">
