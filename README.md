@@ -1,4 +1,4 @@
-# jurialmunkey Alpha Repository
+# ScarWizard Repo
 
 Kodi File Manager Source:
-https://jurialmunkey.github.io/repository.jurialmunkey/
+https://axphantom.github.io/repository.scarwizard/
