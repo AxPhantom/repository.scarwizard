@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<root><addon id="repository.scarwizard" name="ScarWizard Repo" version="2.6" provider-name="Macaulay">
+<root><addon id="repository.scarwizard" name="ScarWizard Repo" version="2.7" provider-name="Macaulay">
     <extension point="xbmc.addon.repository" name="ScarWizard Repo">
         <dir>
             <info compressed="false">https://raw.githubusercontent.com/axphantom/repository.scarwizard/master/repo/zips/addons.xml</info>
@@ -8,7 +8,7 @@
         </dir>
 		<dir minversion="18.0" maxversion="18.9.0">
             <info compressed="false">https://raw.githubusercontent.com/axphantom/repository.scarwizard/master/leia/zips/addons.xml</info>
-            <checksum>https://raw.githubusercontent.com/axphantom/repository.scarwiazrd/master/leia/zips/addons.xml.md5</checksum>
+            <checksum>https://raw.githubusercontent.com/axphantom/repository.scarwizard/master/leia/zips/addons.xml.md5</checksum>
             <datadir zip="true">https://raw.githubusercontent.com/axphantom/repository.scarwizard/master/leia/zips/</datadir>
         </dir>
         <dir minversion="18.9.0">
