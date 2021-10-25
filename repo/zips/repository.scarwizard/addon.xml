@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="repository.scarwizard" name="[COLOR orange][B]Scar[/B][/COLOR]Wizard Repository" version="2.3" provider-name="Macaulay">
+<addon id="repository.scarwizard" name="[COLOR orange][B]Scar[/B][/COLOR]Wizard Repository" version="2.4" provider-name="Macaulay">
     <extension point="xbmc.addon.repository" name="[COLOR orange][B]Scar[/B][/COLOR]Wizard Repository">
 		<dir>
             <info compressed="false">https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/repo/zips/addons.xml</info>
             <checksum>https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/repo/zips/addons.xml.md5</checksum>
             <datadir zip="true">https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/repo/zips/</datadir>
         </dir>
-		<dir minversion="18.0" maxversion="18.9.9">
+		<dir minversion="18.0.0" maxversion="18.9.9">
             <info compressed="false">https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/leia/zips/addons.xml</info>
             <checksum>https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/leia/zips/addons.xml.md5</checksum>
             <datadir zip="true">https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/leia/zips/</datadir>
