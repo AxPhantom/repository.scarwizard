@@ -32,10 +32,10 @@ description="The 2nd Build in the Scar Wizard, making your Kodi become one of th
 
 name="Oath"
 version="1.0"
-url="https://github.com/AxPhantom/repository.scarwizard/raw/master/Builds/Oath/Oath-1.0.zip"
+url="https://www.dropbox.com/s/17745hv6l7swc3p/Oath.zip?dl=1"
 minor="http://"
 gui="http://"
-kodi="19.2"
+kodi="19.3"
 theme="http://"
 icon="http://"
 fanart="http://"
