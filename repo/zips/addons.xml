@@ -20,7 +20,7 @@
         <description lang="en">[COLOR orange]Scar[/COLOR]Wizard offers many maintenance features, selective add-on data saving, and automated build installs.</description>
         <platform>all</platform>
         <reuselanguageinvoker>false</reuselanguageinvoker>
-        <source>https://www.github.com/AxPhantom/repository.scar/</source>
+        <source>https://www.github.com/AxPhantom/repository.scarwizard/</source>
         <news>
 2.1.0
  - New Build 'Audacity' for Kodi v21.1 Omega	
@@ -150,21 +150,6 @@
     </extension>
 </addon><addon id="repository.scarwizard" name="ScarWizard Repo" version="3.0" provider-name="Macaulay">
     <extension point="xbmc.addon.repository" name="ScarWizard Repo">
-        <dir>
-            <info compressed="false">https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/repo/zips/addons.xml</info>
-            <checksum>https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/repo/zips/addons.xml.md5</checksum>
-            <datadir zip="true">https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/repo/zips/</datadir>
-        </dir>
-		<dir minversion="18.0" maxversion="18.9.0">
-            <info compressed="false">https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/leia/zips/addons.xml</info>
-            <checksum>https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/leia/zips/addons.xml.md5</checksum>
-            <datadir zip="true">https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/leia/zips/</datadir>
-        </dir>
-        <dir minversion="18.9.0" maxversion="20.9.0">
-            <info compressed="false">https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/matrix/zips/addons.xml</info>
-            <checksum>https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/matrix/zips/addons.xml.md5</checksum>
-            <datadir zip="true">https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/matrix/zips/</datadir>
-        </dir>
 		<dir minversion="21.0.0">
             <info compressed="false">https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/omega/zips/addons.xml</info>
             <checksum>https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/omega/zips/addons.xml.md5</checksum>
