@@ -17,7 +17,7 @@ ADDONTITLE = '[COLOR orange][B]Scar[/B][/COLOR]Wizard'
 BUILDERNAME = 'Macaulay'
 EXCLUDES = [ADDON_ID, 'repository.scarwizard']
 # Text File with build info in it. Please read https://github.com/a4k-openproject/plugin.program.openwizard/wiki/Installing-Builds
-BUILDFILE = 'https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/builds.txt'
+BUILDFILE = "https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/builds.txt"
 # How often you would like it to check for build updates in days
 # 0 being every startup of kodi
 UPDATECHECK = 0
@@ -98,9 +98,9 @@ AUTOINSTALL = 'Yes'
 # Addon ID for the repository
 REPOID = 'repository.scarwizard'
 # Url to Addons.xml file in your repo folder(this is so we can get the latest version)
-REPOADDONXML = 'https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/repo/zips/addons.xml'
+REPOADDONXML = "tp://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/repo/zips/addons.xml"
 # Url to folder zip is located in
-REPOZIPURL = 'https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/'
+REPOZIPURL = "ttp://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/"
 #########################################################
 
 #########################################################
