@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<addons><addon id="plugin.program.scarwizard" name="[COLOR orange]Scar[/COLOR]Wizard" version="2.0.1" provider-name="Macaulay">
+<addons><addon id="plugin.program.scarwizard" name="[COLOR orange]Scar[/COLOR]Wizard" version="3.0" provider-name="Macaulay">
     <requires>
         <import addon="xbmc.python" version="3.0.0" />
         <import addon="script.module.requests" />
@@ -161,6 +161,11 @@
             <info compressed="false">https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/matrix/zips/addons.xml</info>
             <checksum>https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/matrix/zips/addons.xml.md5</checksum>
             <datadir zip="true">https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/matrix/zips/</datadir>
+        </dir>
+		<dir minversion="21.0.0">
+            <info compressed="false">https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/omega/zips/addons.xml</info>
+            <checksum>https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/omega/zips/addons.xml.md5</checksum>
+            <datadir zip="true">https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/omega/zips/</datadir>
         </dir>
     </extension>
     <extension point="xbmc.addon.metadata">
