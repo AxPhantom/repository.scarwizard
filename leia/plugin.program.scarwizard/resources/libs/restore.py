@@ -36,8 +36,6 @@ from resources.libs.common.config import CONFIG
 
 
 def binaries():
-    from resources.libs import install
-
     dialog = xbmcgui.Dialog()
 
     binarytxt = os.path.join(CONFIG.USERDATA, 'build_binaries.txt')
@@ -62,9 +60,11 @@ def binaries():
         logging.log('No addons selected for installation.')
         return
 
+    from resources.libs.gui import addon_menu
+
     # finally, reinstall addons
     for addonid in binaryids:
-        if install.install_from_kodi(addonid):
+        if addon_menu.install_from_kodi(addonid):
             logging.log('{0} install succeeded.'.format(addonid))
             success.append(addonid)
         else:
@@ -91,10 +91,7 @@ class Restore:
     def _prompt_for_wipe(self):
         # Should we wipe first?
         wipe = self.dialog.yesno(CONFIG.ADDONTITLE,
-                                 "[COLOR {0}]Do you wish to restore your".format(CONFIG.COLOR2),
-                                 "Kodi configuration to default settings",
-                                 "Before installing the {0} backup?[/COLOR]".format(
-                                     'local' if not self.external else 'external'),
+                                 "[COLOR {0}]Do you wish to restore your".format(CONFIG.COLOR2) + '\n' + "Kodi configuration to default settings" + '\n' + "Before installing the {0} backup?[/COLOR]".format('local' if not self.external else 'external'),
                                  nolabel='[B][COLOR red]No[/COLOR][/B]',
                                  yeslabel='[B][COLOR springgreen]Yes[/COLOR][/B]')
 
@@ -112,31 +109,30 @@ class Restore:
 
         if not self.external:
             try:
-                zipfile.ZipFile(file, 'r')
+                zipfile.ZipFile(file, 'r', allowZip64=True)
             except zipfile.BadZipFile as e:
                 from resources.libs.common import logging
                 logging.log(e, level=xbmc.LOGERROR)
-                self.progress_dialog.update(0, '[COLOR {0}]Unable to read zip file from current location.'.format(
-                    CONFIG.COLOR2), 'Copying file to packages')
+                self.progress_dialog.update(0, '[COLOR {0}]Unable to read zip file from current location.'.format(CONFIG.COLOR2) + '\n' + 'Copying file to packages')
                 xbmcvfs.copy(file, packages)
-                file = xbmc.translatePath(packages)
-                self.progress_dialog.update(0, '', 'Copying file to packages: Complete')
-                zipfile.ZipFile(file, 'r')
+                file = xbmcvfs.translatePath(packages)
+                self.progress_dialog.update(0, '\n' + 'Copying file to packages: Complete')
+                zipfile.ZipFile(file, 'r', allowZip64=True)
         else:
             from resources.libs.downloader import Downloader
             Downloader().download(file, packages)
 
         self._prompt_for_wipe()
 
-        self.progress_dialog.update(0, 'Installing External Backup', '', 'Please Wait')
+        self.progress_dialog.update(0, 'Installing External Backup' + '\n' + 'Please Wait')
         percent, errors, error = extract.all(file, loc)
         self._view_errors(percent, errors, error, file)
 
         CONFIG.set_setting('installed', 'true')
-        CONFIG.set_setting('extract', str(percent))
-        CONFIG.set_setting('errors', str(errors))
+        CONFIG.set_setting('extract', percent)
+        CONFIG.set_setting('errors', errors)
 
-        if not self.external:
+        if self.external:
             try:
                 os.remove(file)
             except:
@@ -150,14 +146,7 @@ class Restore:
 
     def _view_errors(self, percent, errors, error, file):
         if int(errors) >= 1:
-            if self.dialog.yesno(CONFIG.ADDONTITLE,
-                                 '[COLOR {0}][COLOR {1}]{2}[/COLOR]'.format(CONFIG.COLOR2, CONFIG.COLOR1, file),
-                                 'Completed: [COLOR {0}]{1}{2}[/COLOR] [Errors: [COLOR {3}]{4}[/COLOR]]'.format(
-                                     CONFIG.COLOR1,
-                                     percent, '%',
-                                     CONFIG.COLOR1,
-                                     errors),
-                                 'Would you like to view the errors?[/COLOR]',
+            if self.dialog.yesno(CONFIG.ADDONTITLE, '[COLOR {0}][COLOR {1}]{2}[/COLOR]'.format(CONFIG.COLOR2, CONFIG.COLOR1, file) + '\n' + 'Completed: [COLOR {0}]{1}{2}[/COLOR] [Errors: [COLOR {3}]{4}[/COLOR]]'.format(CONFIG.COLOR1, percent, '%',CONFIG.COLOR1, errors) + '\n' + 'Would you like to view the errors?[/COLOR]',
                                  nolabel='[B][COLOR red]No Thanks[/COLOR][/B]',
                                  yeslabel='[B][COLOR springgreen]View Errors[/COLOR][/B]'):
 
@@ -167,7 +156,7 @@ class Restore:
     def choose(self, location):
         from resources.libs import skin
 
-        skin.look_and_feel_data()
+        skin.look_and_feel_data('restore')
         external = 'External' if self.external else 'Local'
 
         file = self.dialog.browseSingle(1, '[COLOR {0}]Select the backup file you want to restore[/COLOR]'.format(
@@ -190,8 +179,7 @@ class Restore:
                 return
 
         skin.skin_to_default("Restore")
-        self.progress_dialog.create(CONFIG.ADDONTITLE, '[COLOR {0}]Installing {1} Backup'.format(
-            CONFIG.COLOR2, external), '', 'Please Wait[/COLOR]')
+        self.progress_dialog.create(CONFIG.ADDONTITLE, '[COLOR {0}]Installing {1} Backup'.format(CONFIG.COLOR2, external) + '\n' + 'Please Wait[/COLOR]')
 
         self._from_file(file, location)
 
@@ -201,7 +189,7 @@ def restore(action, external=False):
 
     if action == 'build':
         cls.choose(CONFIG.HOME)  # Install into special://home/
-    elif action in ['guifix', 'theme', 'addonpack']:
+    elif action in ['gui', 'theme', 'addonpack']:
         cls.choose(CONFIG.USERDATA)  # Install into special://userdata/
     elif action == 'addondata':
         cls.choose(CONFIG.ADDON_DATA)  # Install into special://userdata/addon_data/

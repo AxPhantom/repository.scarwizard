@@ -1,6 +1,6 @@
 id="plugin.program.scarwizard"
-version="2.1.0"
-zip="https://github.com/AxPhantom/repository.scarwizard/raw/master/omega/zips/plugin.program.scarwizard/plugin.program.scarwizard.zip"
+version="3.0.0"
+zip="https://github.com/AxPhantom/repository.scarwizard/raw/master/omega/zips/plugin.program.scarwizard/plugin.program.scarwizard-3.0.zip"
 
 name="Scar"
 version="2.0"

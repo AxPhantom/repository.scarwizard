@@ -24,12 +24,13 @@ import os
 
 from resources.libs import check
 from resources.libs import db
-from resources.libs.downloader import Downloader
 from resources.libs import extract
-from resources.libs.common import logging
+from resources.libs import install
 from resources.libs import skin
+from resources.libs.common import logging
 from resources.libs.common import tools
 from resources.libs.common.config import CONFIG
+from resources.libs.downloader import Downloader
 
 
 class Wizard:
@@ -42,30 +43,26 @@ class Wizard:
 
     def _prompt_for_wipe(self):
         # Should we wipe first?
-        yes = self.dialog.yesno(CONFIG.ADDONTITLE,
-                           "[COLOR {0}]Do you wish to restore your".format(CONFIG.COLOR2),
-                           "Kodi configuration to default settings",
-                           "Before installing the build backup?[/COLOR]",
+        if self.dialog.yesno(CONFIG.ADDONTITLE,
+                           "[COLOR {0}]Do you wish to restore your".format(CONFIG.COLOR2) +'\n' + "Kodi configuration to default settings" + '\n' + "Before installing the build backup?[/COLOR]",
                            nolabel='[B][COLOR red]No[/COLOR][/B]',
-                           yeslabel='[B][COLOR springgreen]Yes[/COLOR][/B]')
-        if yes:
-            from resources.libs import install
+                           yeslabel='[B][COLOR springgreen]Yes[/COLOR][/B]'):
             install.wipe()
 
-    def build(self, action, name, over=False):
-        if action == 'normal':
-            if CONFIG.KEEPTRAKT == 'true':
-                from resources.libs import traktit
-                traktit.auto_update('all')
-                CONFIG.set_setting('traktlastsave', tools.get_date(days=3))
-            if CONFIG.KEEPDEBRID == 'true':
-                from resources.libs import debridit
-                debridit.auto_update('all')
-                CONFIG.set_setting('debridlastsave', tools.get_date(days=3))
-            if CONFIG.KEEPLOGIN == 'true':
-                from resources.libs import loginit
-                loginit.auto_update('all')
-                CONFIG.set_setting('loginlastsave', tools.get_date(days=3))
+    def build(self, name, over=False):
+        # if action == 'normal':
+            # if CONFIG.KEEPTRAKT == 'true':
+                # from resources.libs import traktit
+                # traktit.auto_update('all')
+                # CONFIG.set_setting('traktnextsave', tools.get_date(days=3, formatted=True))
+            # if CONFIG.KEEPDEBRID == 'true':
+                # from resources.libs import debridit
+                # debridit.auto_update('all')
+                # CONFIG.set_setting('debridnextsave', tools.get_date(days=3, formatted=True))
+            # if CONFIG.KEEPLOGIN == 'true':
+                # from resources.libs import loginit
+                # loginit.auto_update('all')
+                # CONFIG.set_setting('loginnextsave', tools.get_date(days=3, formatted=True))
 
         temp_kodiv = int(CONFIG.KODIV)
         buildv = int(float(check.check_build(name, 'kodi')))
@@ -76,33 +73,18 @@ class Wizard:
             warning = False
 
         if warning:
-            yes_pressed = self.dialog.yesno("{0} - [COLOR red]WARNING!![/COLOR]".format(CONFIG.ADDONTITLE),
-                                       '[COLOR {0}]There is a chance that the skin will not appear correctly'.format(
-                                           CONFIG.COLOR2),
-                                       'When installing a {0} build on a Kodi {1} install'.format(
-                                           check.check_build(name, 'kodi'), CONFIG.KODIV),
-                                       'Would you still like to install: [COLOR {0}]{1} v{2}[/COLOR]?[/COLOR]'.format(
-                                           CONFIG.COLOR1, name, check.check_build(name, 'version')),
-                                       nolabel='[B][COLOR red]No, Cancel[/COLOR][/B]',
-                                       yeslabel='[B][COLOR springgreen]Yes, Install[/COLOR][/B]')
+            yes_pressed = self.dialog.yesno("{0} - [COLOR red]WARNING!![/COLOR]".format(CONFIG.ADDONTITLE), '[COLOR {0}]There is a chance that the skin will not appear correctly'.format(CONFIG.COLOR2) + '\n' + 'When installing a {0} build on a Kodi {1} install'.format(check.check_build(name, 'kodi'), CONFIG.KODIV) + '\n' + 'Would you still like to install: [COLOR {0}]{1} v{2}[/COLOR]?[/COLOR]'.format(CONFIG.COLOR1, name, check.check_build(name, 'version')), nolabel='[B][COLOR red]No, Cancel[/COLOR][/B]', yeslabel='[B][COLOR springgreen]Yes, Install[/COLOR][/B]')
         else:
             if over:
                 yes_pressed = 1
             else:
-                yes_pressed = self.dialog.yesno(CONFIG.ADDONTITLE,
-                                           '[COLOR {0}]Would you like to Download and Install:'.format(
-                                               CONFIG.COLOR2),
-                                           '[COLOR {0}]{1} v{2}[/COLOR]?[/COLOR]'.format(CONFIG.COLOR1, name,
-                                                                                         check.check_build(name,
-                                                                                                           'version')),
-                                           nolabel='[B][COLOR red]No, Cancel[/COLOR][/B]',
-                                           yeslabel='[B][COLOR springgreen]Yes, Install[/COLOR][/B]')
+                yes_pressed = self.dialog.yesno(CONFIG.ADDONTITLE, '[COLOR {0}]Would you like to Download and Install: '.format(CONFIG.COLOR2) + '[COLOR {0}]{1} v{2}[/COLOR]?[/COLOR]'.format(CONFIG.COLOR1, name, check.check_build(name,'version')), nolabel='[B][COLOR red]No, Cancel[/COLOR][/B]', yeslabel='[B][COLOR springgreen]Yes, Install[/COLOR][/B]')
         if yes_pressed:
             CONFIG.clear_setting('build')
             buildzip = check.check_build(name, 'url')
             zipname = name.replace('\\', '').replace('/', '').replace(':', '').replace('*', '').replace('?', '').replace('"', '').replace('<', '').replace('>', '').replace('|', '')
 
-            self.dialogProgress.create(CONFIG.ADDONTITLE, '[COLOR {0}][B]Downloading:[/B][/COLOR] [COLOR {1}]{2} v{3}[/COLOR]'.format(CONFIG.COLOR2, CONFIG.COLOR1, name, check.check_build(name, 'version')), '', 'Please Wait')
+            self.dialogProgress.create(CONFIG.ADDONTITLE, '[COLOR {0}][B]Downloading:[/B][/COLOR] [COLOR {1}]{2} v{3}[/COLOR]'.format(CONFIG.COLOR2, CONFIG.COLOR1, name, check.check_build(name, 'version')) + '\n' + 'Please Wait')
 
             lib = os.path.join(CONFIG.MYBUILDS, '{0}.zip'.format(zipname))
             
@@ -122,15 +104,15 @@ class Wizard:
                     
                 return
                 
-            if action == 'normal':
-                self._prompt_for_wipe()
+            install.wipe()
                 
             skin.look_and_feel_data('save')
-            skin.skin_to_default('Build Install')
             
             title = '[COLOR {0}][B]Installing:[/B][/COLOR] [COLOR {1}]{2} v{3}[/COLOR]'.format(CONFIG.COLOR2, CONFIG.COLOR1, name, check.check_build(name, 'version'))
-            self.dialogProgress.update(0, title, '', 'Please Wait')
+            self.dialogProgress.update(0, title + '\n' + 'Please Wait')
             percent, errors, error = extract.all(lib, CONFIG.HOME, title=title)
+            
+            skin.skin_to_default('Build Install')
 
             if int(float(percent)) > 0:
                 db.fix_metas()
@@ -138,10 +120,10 @@ class Wizard:
                 CONFIG.set_setting('buildversion', check.check_build(name, 'version'))
                 CONFIG.set_setting('buildtheme', '')
                 CONFIG.set_setting('latestversion', check.check_build(name, 'version'))
-                CONFIG.set_setting('lastbuildcheck', str(CONFIG.BUILDCHECK))
+                CONFIG.set_setting('nextbuildcheck', tools.get_date(days=CONFIG.UPDATECHECK, formatted=True))
                 CONFIG.set_setting('installed', 'true')
-                CONFIG.set_setting('extract', str(percent))
-                CONFIG.set_setting('errors', str(errors))
+                CONFIG.set_setting('extract', percent)
+                CONFIG.set_setting('errors', errors)
                 logging.log('INSTALLED {0}: [ERRORS:{1}]'.format(percent, errors))
 
                 try:
@@ -151,11 +133,7 @@ class Wizard:
 
                 if int(float(errors)) > 0:
                     yes_pressed = self.dialog.yesno(CONFIG.ADDONTITLE,
-                                       '[COLOR {0}][COLOR {1}]{2} v{3}[/COLOR]'.format(CONFIG.COLOR2, CONFIG.COLOR1,
-                                                                                       name, check.check_build(name, 'version')),
-                                       'Completed: [COLOR {0}]{1}{2}[/COLOR] [Errors:[COLOR {3}]{4}[/COLOR]]'.format(
-                                           CONFIG.COLOR1, percent, '%', CONFIG.COLOR1, errors),
-                                       'Would you like to view the errors?[/COLOR]',
+                                       '[COLOR {0}][COLOR {1}]{2} v{3}[/COLOR]'.format(CONFIG.COLOR2, CONFIG.COLOR1, name, check.check_build(name, 'version')) +'\n' + 'Completed: [COLOR {0}]{1}{2}[/COLOR] [Errors:[COLOR {3}]{4}[/COLOR]]'.format(CONFIG.COLOR1, percent, '%', CONFIG.COLOR1, errors) + '\n' + 'Would you like to view the errors?[/COLOR]',
                                        nolabel='[B][COLOR red]No Thanks[/COLOR][/B]',
                                        yeslabel='[B][COLOR springgreen]View Errors[/COLOR][/B]')
                     if yes_pressed:
@@ -167,10 +145,12 @@ class Wizard:
                 themecount = BuildMenu().theme_count(name)
 
                 if themecount > 0:
-                    self.theme(name, 'theme')
+                    self.theme(name)
 
                 db.addon_database(CONFIG.ADDON_ID, 1)
                 db.force_check_updates(over=True)
+                if os.path.exists(os.path.join(CONFIG.USERDATA, '.enableall')):
+                	CONFIG.set_setting('enable_all', 'true')
 
                 self.dialog.ok(CONFIG.ADDONTITLE, "[COLOR {0}]To save changes you now need to force close Kodi, Press OK to force close Kodi[/COLOR]".format(CONFIG.COLOR2))
                 tools.kill_kodi(over=True)
@@ -187,15 +167,12 @@ class Wizard:
                 yes_pressed = 1
             else:
                 yes_pressed = self.dialog.yesno(CONFIG.ADDONTITLE,
-                                   '[COLOR {0}]Would you like to apply the guifix for:'.format(CONFIG.COLOR2),
-                                   '[COLOR {0}]{1}[/COLOR]?[/COLOR]'.format(CONFIG.COLOR1, name),
+                                   '[COLOR {0}]Would you like to apply the guifix for:'.format(CONFIG.COLOR2) + '\n' + '[COLOR {0}]{1}[/COLOR]?[/COLOR]'.format(CONFIG.COLOR1, name),
                                    nolabel='[B][COLOR red]No, Cancel[/COLOR][/B]',
                                    yeslabel='[B][COLOR springgreen]Apply Fix[/COLOR][/B]')
         else:
             yes_pressed = self.dialog.yesno("{0} - [COLOR red]WARNING!![/COLOR]".format(CONFIG.ADDONTITLE),
-                               "[COLOR {0}][COLOR {1}]{2}[/COLOR] community build is not currently installed.".format(
-                                   CONFIG.COLOR2, CONFIG.COLOR1, name),
-                               "Would you like to apply the guiFix anyways?.[/COLOR]",
+                               "[COLOR {0}][COLOR {1}]{2}[/COLOR] community build is not currently installed.".format(CONFIG.COLOR2, CONFIG.COLOR1, name) + '\n' + "Would you like to apply the guiFix anyways?.[/COLOR]",
                                nolabel='[B][COLOR red]No, Cancel[/COLOR][/B]',
                                yeslabel='[B][COLOR springgreen]Apply Fix[/COLOR][/B]')
         if yes_pressed:
@@ -229,7 +206,7 @@ class Wizard:
                 return
             
             title = '[COLOR {0}][B]Installing:[/B][/COLOR] [COLOR {1}]{2}[/COLOR]'.format(CONFIG.COLOR2, CONFIG.COLOR1, name)
-            self.dialogProgress.update(0, title, '', 'Please Wait')
+            self.dialogProgress.update(0, title + '\n' + 'Please Wait')
             extract.all(lib, CONFIG.USERDATA, title=title)
             self.dialogProgress.close()
             skin.skin_to_default('Build Install')
@@ -243,7 +220,7 @@ class Wizard:
             logging.log_notify(CONFIG.ADDONTITLE,
                                '[COLOR {0}]GuiFix: Cancelled![/COLOR]'.format(CONFIG.COLOR2))
 
-    def theme(self, name, theme, over=False):
+    def theme(self, name, theme='', over=False):
         installtheme = False
 
         if not theme:
@@ -254,10 +231,7 @@ class Wizard:
                 from resources.libs.gui.build_menu import BuildMenu
                 themes = BuildMenu().theme_count(name, False)
                 if len(themes) > 0:
-                    if self.dialog.yesno(CONFIG.ADDONTITLE,
-                                    "[COLOR {0}]The Build [COLOR {1}]{2}[/COLOR] comes with [COLOR {3}]{4}[/COLOR] different themes".format(
-                                        CONFIG.COLOR2, CONFIG.COLOR1, name, CONFIG.COLOR1, len(themes)),
-                                    "Would you like to install one now?[/COLOR]",
+                    if self.dialog.yesno(CONFIG.ADDONTITLE, "[COLOR {0}]The Build [COLOR {1}]{2}[/COLOR] comes with [COLOR {3}]{4}[/COLOR] different themes".format(CONFIG.COLOR2, CONFIG.COLOR1, name, CONFIG.COLOR1, len(themes)) + '\n' + "Would you like to install one now?[/COLOR]",
                                     yeslabel="[B][COLOR springgreen]Install Theme[/COLOR][/B]",
                                     nolabel="[B][COLOR red]Cancel Themes[/COLOR][/B]"):
                         logging.log("Theme List: {0}".format(str(themes)))
@@ -278,14 +252,7 @@ class Wizard:
                 logging.log_notify(CONFIG.ADDONTITLE,
                                    '[COLOR {0}]Theme Install: None Found![/COLOR]'.format(CONFIG.COLOR2))
         else:
-            installtheme = self.dialog.yesno(CONFIG.ADDONTITLE,
-                                        '[COLOR {0}]Would you like to install the theme:'.format(CONFIG.COLOR2),
-                                        '[COLOR {0}]{1}[/COLOR]'.format(CONFIG.COLOR1, theme),
-                                        'for [COLOR {0}]{1} v{2}[/COLOR]?[/COLOR]'.format(CONFIG.COLOR1, name,
-                                                                                          check.check_build(name,
-                                                                                                            'version')),
-                                        yeslabel="[B][COLOR springgreen]Install Theme[/COLOR][/B]",
-                                        nolabel="[B][COLOR red]Cancel Themes[/COLOR][/B]")
+            installtheme = self.dialog.yesno(CONFIG.ADDONTITLE, '[COLOR {0}]Would you like to install the theme:'.format(CONFIG.COLOR2) +' \n' + '[COLOR {0}]{1}[/COLOR]'.format(CONFIG.COLOR1, theme) + '\n' + 'for [COLOR {0}]{1} v{2}[/COLOR]?[/COLOR]'.format(CONFIG.COLOR1, name, check.check_build(name,'version')),yeslabel="[B][COLOR springgreen]Install Theme[/COLOR][/B]", nolabel="[B][COLOR red]Cancel Themes[/COLOR][/B]")
                                         
         if installtheme:
             themezip = check.check_theme(name, theme, 'url')
@@ -297,7 +264,7 @@ class Wizard:
                                    '[COLOR {0}]Theme Install: Invalid Zip Url![/COLOR]'.format(CONFIG.COLOR2))
                 return False
 
-            self.dialogProgress.create(CONFIG.ADDONTITLE, '[COLOR {0}][B]Downloading:[/B][/COLOR] [COLOR {1}]{2}[/COLOR]'.format(CONFIG.COLOR2, CONFIG.COLOR1, theme), '', 'Please Wait')
+            self.dialogProgress.create(CONFIG.ADDONTITLE, '[COLOR {0}][B]Downloading:[/B][/COLOR] [COLOR {1}]{2}[/COLOR]'.format(CONFIG.COLOR2, CONFIG.COLOR1, zipname) +' \n' + 'Please Wait')
 
             lib = os.path.join(CONFIG.PACKAGES, '{0}.zip'.format(zipname))
             
@@ -317,7 +284,7 @@ class Wizard:
                     
                 return
             
-            self.dialogProgress.update(0, "", "Installing {0}".format(name))
+            self.dialogProgress.update(0, '\n' + "Installing {0}".format(name))
 
             test1 = False
             test2 = False
@@ -336,10 +303,8 @@ class Wizard:
 
                 xbmc.sleep(500)
 
-            title = '[COLOR {0}][B]Installing Theme:[/B][/COLOR] [COLOR {1}]{2}[/COLOR]'.format(CONFIG.COLOR2,
-                                                                                                CONFIG.COLOR1,
-                                                                                                theme)
-            self.dialogProgress.update(0, title, '', 'Please Wait')
+            title = '[COLOR {0}][B]Installing Theme:[/B][/COLOR] [COLOR {1}]{2}[/COLOR]'.format(CONFIG.COLOR2, CONFIG.COLOR1, theme)
+            self.dialogProgress.update(0, title + '\n' + 'Please Wait')
             percent, errors, error = extract.all(lib, CONFIG.HOME, title=title)
             CONFIG.set_setting('buildtheme', theme)
             logging.log('INSTALLED {0}: [ERRORS:{1}]'.format(percent, errors))

@@ -73,8 +73,7 @@ def switch_to_skin(goto, title="Error"):
     result = _swap_skins(goto)
 
     if result:
-        logging.log_notify(CONFIG.ADDONTITLE,
-                           '[COLOR {0}]{1}: Skin Swap Success![/COLOR]'.format(CONFIG.COLOR2, title))
+        logging.log('[COLOR {0}]{1}: Skin Swap Success![/COLOR]'.format(CONFIG.COLOR2, title))
     else:
         logging.log_notify(CONFIG.ADDONTITLE,
                            '[COLOR {0}]{1}: Skin Swap Failed![/COLOR]'.format(CONFIG.COLOR2, title))
@@ -88,8 +87,7 @@ def skin_to_default(title):
         return switch_to_skin(skin, title)
     else:
         from resources.libs.common import logging
-        logging.log_notify(CONFIG.ADDONTITLE,
-                           '[COLOR {0}]{1}: Skipping Skin Swap[/COLOR]'.format(CONFIG.COLOR2, title))
+        logging.log('[COLOR {0}]{1}: Skipping Skin Swap[/COLOR]'.format(CONFIG.COLOR2, title))
         return False
 
 
@@ -108,7 +106,7 @@ def look_and_feel_data(do='save'):
                 match = re.compile('{"value":(.+?)}').findall(str(response))
                 CONFIG.set_setting(item.replace('lookandfeel', 'default'), match[0])
                 logging.log("%s saved to %s" % (item, match[0]))
-    else:
+    elif do == 'restore':
         for item in scan:
             value = CONFIG.get_setting(item.replace('lookandfeel', 'default'))
             query = '{{"jsonrpc":"2.0", "method":"Settings.SetSettingValue","params":{{"setting":"{0}","value":{1}}}, "id":1}}'.format(item, value)

@@ -23,7 +23,11 @@ import xbmcvfs
 
 import os
 import re
+import time
 
+import _strptime
+
+from resources.libs.common import tools
 from resources.libs.common.config import CONFIG
 
 try:  # Python 3
@@ -40,46 +44,31 @@ REPLACES = (('//.+?:.+?@', '//USER:PASSWORD@'), ('<user>.+?</user>', '<user>USER
                                                                                             '<pass>PASSWORD</pass>'),)
 
 
-def log(msg, level=xbmc.LOGNOTICE):
-    from resources.libs.common import tools
-
-    if not os.path.exists(CONFIG.PLUGIN_DATA):
-        os.makedirs(CONFIG.PLUGIN_DATA)
-    if not os.path.exists(CONFIG.WIZLOG):
-        f = open(CONFIG.WIZLOG, 'w+')
-        f.close()
-    if CONFIG.WIZDEBUGGING == 'false':
-        return False
+def log(msg, level=xbmc.LOGDEBUG):
     if CONFIG.DEBUGLEVEL == '0':  # No Logging
         return False
     if CONFIG.DEBUGLEVEL == '1':  # Normal Logging
-        if level not in [xbmc.LOGNOTICE, xbmc.LOGERROR, xbmc.LOGSEVERE, xbmc.LOGFATAL]:
-            return False
+        pass
     if CONFIG.DEBUGLEVEL == '2':  # Full Logging
-        level = xbmc.LOGNOTICE
-    try:
-        xbmc.log('{0}: {1}'.format(CONFIG.ADDONTITLE, msg), level)
-    except Exception as e:
-        try:
-            xbmc.log('Logging Failure: {0}'.format(e), level)
-        except:
-            pass
+        level = xbmc.LOGINFO
+    
+    xbmc.log('{0}: {1}'.format(CONFIG.ADDONTITLE, msg), level)
     if CONFIG.ENABLEWIZLOG == 'true':
-        lastcheck = CONFIG.NEXTCLEANDATE if not CONFIG.NEXTCLEANDATE == '' else str(tools.get_date())
-        if CONFIG.CLEANWIZLOG == 'true' and lastcheck <= str(tools.get_date()):
+        if not os.path.exists(CONFIG.WIZLOG):
+            with open(CONFIG.WIZLOG, 'w+') as f:
+                f.close()
+
+        lastcheck = CONFIG.NEXTCLEANDATE if not CONFIG.NEXTCLEANDATE == 0 else tools.get_date()
+        if CONFIG.CLEANWIZLOG == 'true' and time.mktime(time.strptime(lastcheck, "%Y-%m-%d %H:%M:%S")) <= tools.get_date():
             check_log()
 
-        line = "[{0} {1}] {2}".format(tools.get_date(now=True).date(),
-                                      str(tools.get_date(now=True).time())[:8],
-                                      msg)
+        line = "[{0}] {1}".format(tools.get_date(formatted=True), msg)
         line = line.rstrip('\r\n') + '\n'
         tools.write_to_file(CONFIG.WIZLOG, line, mode='a')
 
 
 def check_log():
-    from resources.libs.common import tools
-
-    next = tools.get_date(days=1)
+    next = tools.get_date(days=1, formatted=True)
     lines = tools.read_from_file(CONFIG.WIZLOG).split('\n')
 
     if CONFIG.CLEANWIZLOGBY == '0':  # By Days
@@ -94,7 +83,7 @@ def check_log():
     elif CONFIG.CLEANWIZLOGBY == '1':  # By Size
         maxsize = CONFIG.MAXWIZSIZE[int(float(CONFIG.CLEANSIZE))]*1024
         if os.path.getsize(CONFIG.WIZLOG) >= maxsize:
-            start = len(lines)/2
+            start = int(len(lines)/2)
             newfile = lines[start:]
             tools.write_to_file(CONFIG.WIZLOG, '\n'.join(newfile))
     elif CONFIG.CLEANWIZLOGBY == '2':  # By Lines
@@ -103,7 +92,7 @@ def check_log():
             start = len(lines) - int(maxlines/2)
             newfile = lines[start:]
             tools.write_to_file(CONFIG.WIZLOG, '\n'.join(newfile))
-    CONFIG.set_setting('nextcleandate', str(next))
+    CONFIG.set_setting('nextwizcleandate', next)
 
 
 def log_notify(title, message, times=2000, icon=CONFIG.ADDON_ICON, sound=False):
@@ -112,24 +101,18 @@ def log_notify(title, message, times=2000, icon=CONFIG.ADDON_ICON, sound=False):
 
 
 def grab_log(file=False, old=False, wizard=False):
-    from resources.libs.common import tools
     if wizard:
-        if not os.path.exists(CONFIG.WIZLOG):
-            return False
+        if os.path.exists(CONFIG.WIZLOG):
+            return CONFIG.WIZLOG if file else tools.read_from_file(CONFIG.WIZLOG)
         else:
-            if file:
-                return CONFIG.WIZLOG
-            else:
-                return tools.read_from_file(CONFIG.WIZLOG)
-    finalfile = 0
-    logfilepath = os.listdir(CONFIG.LOGPATH)
+            return False
+                
     logsfound = []
 
-    for item in logfilepath:
-        if old and item.endswith('.old.log'):
-            logsfound.append(os.path.join(CONFIG.LOGPATH, item))
-        elif not old and item.endswith('.log') and not item.endswith('.old.log'):
-            logsfound.append(os.path.join(CONFIG.LOGPATH, item))
+    for item in [file for file in os.listdir(CONFIG.LOGPATH) if os.path.basename(file).startswith('kodi')]:
+        if item.endswith('.log'):
+            if (old and 'old' in item) or (not old and 'old' not in item):
+                logsfound.append(os.path.join(CONFIG.LOGPATH, item))
 
     if len(logsfound) > 0:
         logsfound.sort(key=lambda f: os.path.getmtime(f))
@@ -184,12 +167,12 @@ def upload_log():
 
 def get_files():
     logfiles = []
-    log = grab_log(file=True)
+    kodilog = grab_log(file=True)
     old = grab_log(file=True, old=True)
     wizard = False if not os.path.exists(CONFIG.WIZLOG) else CONFIG.WIZLOG
-    if log:
-        if os.path.exists(log):
-            logfiles.append(['log', log])
+    if kodilog:
+        if os.path.exists(kodilog):
+            logfiles.append(['log', kodilog])
         else:
             show_result("No log file found")
     else:
@@ -208,7 +191,6 @@ def get_files():
         else:
             show_result("No wizard log file found")
     if CONFIG.KEEPCRASHLOG:
-        from resources.libs.common import tools
         crashlog_path = ''
         items = []
         if xbmc.getCondVisibility('system.platform.osx'):
@@ -282,7 +264,6 @@ def post_log(data, name):
 
 # CURRENTLY NOT IN USE
 def copy_to_clipboard(txt):
-    from resources.libs.common import tools
     import subprocess
 
     platform = tools.platform()
@@ -354,7 +335,7 @@ def show_result(message, url=None):
             except:
                 pass
         except Exception as e:
-            log(str(e), xbmc.LOGNOTICE)
+            log(str(e), xbmc.LOGINFO)
             confirm = dialog.ok(CONFIG.ADDONTITLE, "[COLOR %s]%s[/COLOR]" % (CONFIG.COLOR2, message))
     else:
         confirm = dialog.ok(CONFIG.ADDONTITLE, "[COLOR %s]%s[/COLOR]" % (CONFIG.COLOR2, message))
@@ -455,8 +436,6 @@ def _dialog_watch():
 
 
 def error_list(file):
-    from resources.libs.common import tools
-
     errors = []
     b = tools.read_from_file(file).replace('\n', '[CR]').replace('\r', '')
 

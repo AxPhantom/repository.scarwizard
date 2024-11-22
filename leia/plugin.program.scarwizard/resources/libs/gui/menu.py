@@ -20,6 +20,7 @@
 import xbmc
 import xbmcaddon
 import xbmcgui
+import xbmcvfs
 
 import glob
 import os
@@ -27,12 +28,10 @@ import re
 
 try:  # Python 3
     from urllib.parse import quote_plus
-    from urllib.parse import urljoin
     from urllib.request import urlretrieve
 except ImportError:  # Python 2
     from urllib import quote_plus
     from urllib import urlretrieve
-    from urlparse import urljoin
 
 from resources.libs.common import directory
 from resources.libs.common.config import CONFIG
@@ -42,119 +41,44 @@ from resources.libs.common.config import CONFIG
 #      Menu Items         #
 ###########################
 
-
-# commented lines in this method are for x64 apks
-def apk_scraper():
-    from resources.libs.common import logging
-    from resources.libs.common import tools
-
-    kodiurl1 = 'https://mirrors.kodi.tv/releases/android/arm/'
-    # kodiurl2 = 'https://mirrors.kodi.tv/releases/android/arm/old/'
-    # kodiurl3 = 'https://mirrors.kodi.tv/releases/android/arm64-v8a/'
-    # kodiurl4 = 'https://mirrors.kodi.tv/releases/android/arm64-v8a/old/'
-
-    response = tools.open_url(kodiurl1)
-
-    url1 = response.text.replace('\n', '').replace('\r', '').replace('\t', '')
-    # url2 = tools.open_url(kodiurl2).replace('\n', '').replace('\r', '').replace('\t', '')
-    # url3 = tools.open_url(kodiurl3).replace('\n', '').replace('\r', '').replace('\t', '')
-    # url4 = tools.open_url(kodiurl4).replace('\n', '').replace('\r', '').replace('\t', '')
-
-    x = 0
-    match1 = re.compile('<tr><td><a href="(.+?)".+?>(.+?)</a></td><td>(.+?)</td><td>(.+?)</td></tr>').findall(url1)
-    # match2 = re.compile('<tr><td><a href="(.+?)".+?>(.+?)</a></td><td>(.+?)</td><td>(.+?)</td></tr>').findall(url2)
-    # match3 = re.compile('<tr><td><a href="(.+?)".+?>(.+?)</a></td><td>(.+?)</td><td>(.+?)</td></tr>').findall(url3)
-    # match4 = re.compile('<tr><td><a href="(.+?)".+?>(.+?)</a></td><td>(.+?)</td><td>(.+?)</td></tr>').findall(url4)
-
-    directory.add_file("Official Kodi Apk\'s", themeit=CONFIG.THEME1)
-    rc = False
-    for url, name, size, date in match1:
-        if url in ['../', 'old/']:
-            continue
-        if not url.endswith('.apk'):
-            continue
-        if not url.find('_') == -1 and rc:
-            continue
-        try:
-            tempname = name.split('-')
-            if not url.find('_') == -1:
-                rc = True
-                name2, v2 = tempname[2].split('_')
-            else:
-                name2 = tempname[2]
-                v2 = ''
-            title = "[COLOR {0}]{1} v{2}{3} {4}[/COLOR] [COLOR {5}]{6}[/COLOR] [COLOR {7}]{8}[/COLOR]".format(CONFIG.COLOR1, tempname[0].title(), tempname[1], v2.upper(), name2, CONFIG.COLOR2, size.replace(' ', ''), CONFIG.COLOR1, date)
-            download = urljoin(kodiurl1, url)
-            directory.add_file(title, {'mode': 'apkinstall', 'name': "{0} v{1}{2} {3}".format(tempname[0].title(), tempname[1], v2.upper(), name2), 'url': download})
-            x += 1
-        except Exception as e:
-            logging.log("Error on APK scraping: {0}".format(str(e)))
-
-    # for url, name, size, date in match2:
-    #     if url in ['../', 'old/']:
-    #         continue
-    #     if not url.endswith('.apk'):
-    #         continue
-    #     if not url.find('_') == -1:
-    #         continue
-    #     try:
-    #         tempname = name.split('-')
-    #         title = "[COLOR {0}]{1} v{2} {3}[/COLOR] [COLOR {4}]{5}[/COLOR] [COLOR {6}]{7}[/COLOR]".format(CONFIG.COLOR1, tempname[0].title(), tempname[1], tempname[2], CONFIG.COLOR2, size.replace(' ', ''), CONFIG.COLOR1, date)
-    #         download = urljoin(kodiurl2, url)
-    #         directory.add_file(title, {'mode': 'apkinstall', 'name': "{0} v{1} {2}".format(tempname[0].title(), tempname[1], tempname[2]), 'url': download})
-    #         x += 1
-    #     except Exception as e:
-    #         logging.log("Error on APK  scraping: {0}".format(str(e)))
-
-    # for url, name, size, date in match3:
-    #     if url in ['../', 'old/']:
-    #         continue
-    #     if not url.endswith('.apk'):
-    #         continue
-    #     if not url.find('_') == -1:
-    #         continue
-    #     try:
-    #         tempname = name.split('-')
-    #         title = "[COLOR {0}]{1} v{2} {3}[/COLOR] [COLOR {4}]{5}[/COLOR] [COLOR {6}]{7}[/COLOR]".format(CONFIG.COLOR1, tempname[0].title(), tempname[1], tempname[2], CONFIG.COLOR2, size.replace(' ', ''), CONFIG.COLOR1, date)
-    #         download = urljoin(kodiurl2, url)
-    #         directory.add_file(title, 'apkinstall', "{0} v{1} {2}".format(tempname[0].title(), tempname[1], tempname[2]), download)
-    #         x += 1
-    #     except Exception as e:
-    #         logging.log("Error on APK  scraping: {0}".format(str(e)))
-    #
-    # for url, name, size, date in match4:
-    #     if url in ['../', 'old/']:
-    #         continue
-    #     if not url.endswith('.apk'):
-    #         continue
-    #     if not url.find('_') == -1:
-    #         continue
-    #     try:
-    #         tempname = name.split('-')
-    #         title = "[COLOR {0}]{1} v{2} {3}[/COLOR] [COLOR {4}]{5}[/COLOR] [COLOR {6}]{7}[/COLOR]".format(CONFIG.COLOR1, tempname[0].title(), tempname[1], tempname[2], CONFIG.COLOR2, size.replace(' ', ''), CONFIG.COLOR1, date)
-    #         download = urljoin(kodiurl2, url)
-    #         directory.add_file(title, 'apkinstall', "{0} v{1} {2}".format(tempname[0].title(), tempname[1], tempname[2]), download)
-    #         x += 1
-    #     except Exception as e:
-    #         logging.log("Error on APK  scraping: {0}".format(str(e)))
-
-    if x == 0:
-        directory.add_file("Error Kodi Scraper Is Currently Down.")
+def check_for_fm():
+    if not xbmc.getCondVisibility('System.HasAddon(script.kodi.android.update)'):
+        from resources.libs.gui import addon_menu
+        addon_menu.install_from_kodi('script.kodi.android.update')
+    
+    try:
+        updater = xbmcaddon.Addon('script.kodi.android.update')
+    except RuntimeError as e:
+        return False
+        
+    fm = int(updater.getSetting('File_Manager'))
+    apps = xbmcvfs.listdir('androidapp://sources/apps/')[1]
+    
+    if fm == 0 and 'com.android.documentsui' not in apps:
+        dialog = xbmcgui.Dialog()
+        choose = dialog.yesno(CONFIG.ADDONTITLE, 'It appears your device has no default file manager. Would you like to set one now?')
+        if not choose:
+            dialog.ok(CONFIG.ADDONTITLE, 'If an APK downloads, but doesn\'t open for installation, try changing your file manager in {}\'s "Install Settings".'.format(CONFIG.ADDONTITLE))
+        else:
+            from resources.libs import install
+            install.choose_file_manager()
+            
+    return True
 
 
 def apk_menu(url=None):
     from resources.libs.common import logging
     from resources.libs.common import tools
 
-    if not url:
-        directory.add_dir('Official Kodi APK\'s', {'mode': 'apkscrape', 'name': 'kodi'}, icon=CONFIG.ICONAPK, themeit=CONFIG.THEME1)
+    if check_for_fm():
+        directory.add_dir('Official Kodi APK\'s', {'mode': 'kodiapk'}, icon=CONFIG.ICONAPK, themeit=CONFIG.THEME1)
         directory.add_separator()
 
     response = tools.open_url(CONFIG.APKFILE)
     url_response = tools.open_url(url)
 
     if response:
-        TEMPAPKFILE = url_response.text if url else response.text
+        TEMPAPKFILE = tools.clean_text(url_response.text if url else response.text)
 
         if TEMPAPKFILE:
             match = re.compile('name="(.+?)".+?ection="(.+?)".+?rl="(.+?)".+?con="(.+?)".+?anart="(.+?)".+?dult="(.+?)".+?escription="(.+?)"').findall(TEMPAPKFILE)
@@ -177,62 +101,8 @@ def apk_menu(url=None):
             logging.log("[APK Menu] ERROR: URL for apk list not working.", level=xbmc.LOGERROR)
             directory.add_file('Url for txt file not valid', themeit=CONFIG.THEME3)
             directory.add_file('{0}'.format(CONFIG.APKFILE), themeit=CONFIG.THEME3)
-        return
     else:
         logging.log("[APK Menu] No APK list added.")
-
-
-def addon_menu(url=None):
-    from resources.libs.common import logging
-    from resources.libs.common import tools
-
-    response = tools.open_url(CONFIG.ADDONFILE)
-    url_response = tools.open_url(url)
-
-    if response:
-        TEMPADDONFILE = url_response.text if url else response.text
-
-        if TEMPADDONFILE:
-            link = TEMPADDONFILE.replace('\n', '').replace('\r', '').replace('\t', '').replace('repository=""', 'repository="none"').replace('repositoryurl=""', 'repositoryurl="http://"').replace('repositoryxml=""', 'repositoryxml="http://"')
-            match = re.compile('name="(.+?)".+?lugin="(.+?)".+?rl="(.+?)".+?epository="(.+?)".+?epositoryxml="(.+?)".+?epositoryurl="(.+?)".+?con="(.+?)".+?anart="(.+?)".+?dult="(.+?)".+?escription="(.+?)"').findall(link)
-            if len(match) > 0:
-                x = 0
-                for aname, plugin, aurl, repository, repositoryxml, repositoryurl, icon, fanart, adult, description in match:
-                    if plugin.lower() == 'section':
-                        x += 1
-                        directory.add_dir("[B]{0}[/B]".format(aname), {'mode': 'addons', 'name': aname, 'url': aurl}, description=description, icon=icon, fanart=fanart, themeit=CONFIG.THEME3)
-                    elif plugin.lower() == 'skin':
-                        if not CONFIG.SHOWADULT == 'true' and adult.lower() == 'yes':
-                            continue
-                        x += 1
-                        directory.add_file("[B]{0}[/B]".format(aname), {'mode': 'skinpack', 'name': aname, 'url': aurl}, description=description, icon=icon, fanart=fanart, themeit=CONFIG.THEME2)
-                    elif plugin.lower() == 'pack':
-                        if not CONFIG.SHOWADULT == 'true' and adult.lower() == 'yes':
-                            continue
-                        x += 1
-                        directory.add_file("[B]{0}[/B]".format(aname), {'mode': 'addonpack', 'name': aname, 'url': aurl}, description=description, icon=icon, fanart=fanart, themeit=CONFIG.THEME2)
-                    else:
-                        if not CONFIG.SHOWADULT == 'true' and adult.lower() == 'yes':
-                            continue
-                        try:
-                            add = xbmcaddon.Addon(id=plugin).getAddonInfo('path')
-                            if os.path.exists(add):
-                                aname = "[COLOR springgreen][Installed][/COLOR] {0}".format(aname)
-                        except:
-                            pass
-                        x += 1
-                        directory.add_file(aname, {'mode': 'addoninstall', 'name': plugin, 'url': url}, description=description, icon=icon, fanart=fanart, themeit=CONFIG.THEME2)
-                    if x < 1:
-                        directory.add_file("No addons added to this menu yet!", themeit=CONFIG.THEME2)
-            else:
-                directory.add_file('Text File not formated correctly!', themeit=CONFIG.THEME3)
-                logging.log("[Addon Menu] ERROR: Invalid Format.")
-        else:
-            logging.log("[Addon Menu] ERROR: URL for Addon list not working.")
-            directory.add_file('Url for txt file not valid', themeit=CONFIG.THEME3)
-            directory.add_file('{0}'.format(CONFIG.ADDONFILE), themeit=CONFIG.THEME3)
-    else:
-        logging.log("[Addon Menu] No Addon list added.")
 
 
 def youtube_menu(url=None):
@@ -289,17 +159,17 @@ def view_ip():
 def speed_test():
     from datetime import date
 
-    directory.add_file('Run Speed Test', {'mode': 'runspeedtest'}, icon=CONFIG.ICONMAINT, themeit=CONFIG.THEME3)
+    directory.add_file('Run Speed Test', {'mode': 'speedtest'}, icon=CONFIG.ICONSPEED, themeit=CONFIG.THEME3)
     if os.path.exists(CONFIG.SPEEDTEST):
         speedimg = glob.glob(os.path.join(CONFIG.SPEEDTEST, '*.png'))
         speedimg.sort(key=lambda f: os.path.getmtime(f), reverse=True)
         if len(speedimg) > 0:
-            directory.add_file('Clear Results', {'mode': 'clearspeedtest'}, icon=CONFIG.ICONMAINT, themeit=CONFIG.THEME3)
-            directory.add_separator('Previous Runs', icon=CONFIG.ICONMAINT, themeit=CONFIG.THEME3)
+            directory.add_file('Clear Results', {'mode': 'clearspeedtest'}, icon=CONFIG.ICONSPEED, themeit=CONFIG.THEME3)
+            directory.add_separator('Previous Runs', icon=CONFIG.ICONSPEED, themeit=CONFIG.THEME3)
             for item in speedimg:
                 created = date.fromtimestamp(os.path.getmtime(item)).strftime('%m/%d/%Y %H:%M:%S')
                 img = item.replace(os.path.join(CONFIG.SPEEDTEST, ''), '')
-                directory.add_file('[B]{0}[/B]: [I]Ran {1}[/I]'.format(img, created), {'mode': 'viewspeedtest', 'name': img}, icon=CONFIG.ICONMAINT, themeit=CONFIG.THEME3)
+                directory.add_file('[B]{0}[/B]: [I]Ran {1}[/I]'.format(img, created), {'mode': 'viewspeedtest', 'name': img}, icon=CONFIG.ICONSPEED, themeit=CONFIG.THEME3)
 
 
 def clear_speed_test():
@@ -446,6 +316,7 @@ def save_menu():
     advanced = 'true' if CONFIG.KEEPADVANCED == 'true' else 'false'
     profiles = 'true' if CONFIG.KEEPPROFILES == 'true' else 'false'
     playercore = 'true' if CONFIG.KEEPPLAYERCORE == 'true' else 'false'
+    guisettings = 'true' if CONFIG.KEEPGUISETTINGS == 'true' else 'false'
     favourites = 'true' if CONFIG.KEEPFAVS == 'true' else 'false'
     repos = 'true' if CONFIG.KEEPREPOS == 'true' else 'false'
     super = 'true' if CONFIG.KEEPSUPER == 'true' else 'false'
@@ -463,6 +334,7 @@ def save_menu():
     directory.add_file('Keep \'Sources.xml\': {0}'.format(sources.replace('true', on).replace('false', off)), {'mode': 'togglesetting', 'name': 'keepsources'}, icon=CONFIG.ICONSAVE, themeit=CONFIG.THEME1)
     directory.add_file('Keep \'Profiles.xml\': {0}'.format(profiles.replace('true', on).replace('false', off)), {'mode': 'togglesetting', 'name': 'keepprofiles'}, icon=CONFIG.ICONSAVE, themeit=CONFIG.THEME1)
     directory.add_file('Keep \'playercorefactory.xml\': {0}'.format(playercore.replace('true', on).replace('false', off)), {'mode': 'togglesetting', 'name': 'keepplayercore'}, icon=CONFIG.ICONSAVE, themeit=CONFIG.THEME1)
+    directory.add_file('Keep \'guisettings.xml\': {0}'.format(guisettings.replace('true', on).replace('false', off)), {'mode': 'togglesetting', 'name': 'keepguiseettings'}, icon=CONFIG.ICONSAVE, themeit=CONFIG.THEME1)
     directory.add_file('Keep \'Advancedsettings.xml\': {0}'.format(advanced.replace('true', on).replace('false', off)), {'mode': 'togglesetting', 'name': 'keepadvanced'}, icon=CONFIG.ICONSAVE, themeit=CONFIG.THEME1)
     directory.add_file('Keep \'Favourites.xml\': {0}'.format(favourites.replace('true', on).replace('false', off)), {'mode': 'togglesetting', 'name': 'keepfavourites'}, icon=CONFIG.ICONSAVE, themeit=CONFIG.THEME1)
     directory.add_file('Keep Super Favourites: {0}'.format(super.replace('true', on).replace('false', off)), {'mode': 'togglesetting', 'name': 'keepsuper'}, icon=CONFIG.ICONSAVE, themeit=CONFIG.THEME1)
@@ -621,12 +493,11 @@ def login_menu():
     directory.add_file('Clear All Saved Login Info', {'mode': 'clearlogin', 'name': 'all'}, icon=CONFIG.ICONLOGIN, themeit=CONFIG.THEME3)
 
 
-def enable_addons():
+def enable_addons(all=False):
     from resources.libs.common import tools
     
     from xml.etree import ElementTree
 
-    directory.add_file("[I][B][COLOR red]!!Notice: Disabling Some Addons Can Cause Issues!![/COLOR][/B][/I]", icon=CONFIG.ICONMAINT)
     fold = glob.glob(os.path.join(CONFIG.ADDONS, '*/'))
     addonnames = []
     addonids = []
@@ -643,25 +514,31 @@ def enable_addons():
             root = ElementTree.parse(xml).getroot()
             addonid = root.get('id')
             addonname = root.get('name')
-           
-            try:
-                addonnames.append(tools.get_addon_info(addonid, 'name'))
-                addonids.append(addonid)
-            except:                
-                pass
-                
-            if xbmc.getCondVisibility('System.HasAddon({0})'.format(addonid)):
-                state = "[COLOR springgreen][Enabled][/COLOR]"
-                goto = "false"
-            else:
-                state = "[COLOR red][Disabled][/COLOR]"
-                goto = "true"
-                
-            icon = os.path.join(folder, 'icon.png') if os.path.exists(os.path.join(folder, 'icon.png')) else CONFIG.ADDON_ICON
-            fanart = os.path.join(folder, 'fanart.jpg') if os.path.exists(os.path.join(folder, 'fanart.jpg')) else CONFIG.ADDON_FANART
-            directory.add_file("{0} {1}".format(state, addonname), {'mode': 'toggleaddon', 'name': addonid, 'url': goto}, icon=icon, fanart=fanart)
-    if len(addonnames) == 0:
-        directory.add_file("No Addons Found to Enable or Disable.", icon=CONFIG.ICONMAINT)
+            addonids.append(addonid)
+            addonnames.append(addonname)
+    if not all:
+        if len(addonids) == 0:
+            directory.add_file("No Addons Found to Enable or Disable.", icon=CONFIG.ICONMAINT)
+        else:
+            directory.add_file("[I][B][COLOR red]!!Notice: Disabling Some Addons Can Cause Issues!![/COLOR][/B][/I]", icon=CONFIG.ICONMAINT)
+            directory.add_dir('Enable All Addons', {'mode': 'enableall'}, icon=CONFIG.ICONMAINT, themeit=CONFIG.THEME3)
+            for i in range(0, len(addonids)):
+                folder = os.path.join(CONFIG.ADDONS, addonids[i])
+                icon = os.path.join(folder, 'icon.png') if os.path.exists(os.path.join(folder, 'icon.png')) else CONFIG.ADDON_ICON
+                fanart = os.path.join(folder, 'fanart.jpg') if os.path.exists(os.path.join(folder, 'fanart.jpg')) else CONFIG.ADDON_FANART
+                if tools.get_addon_info(addonids[i], 'name'):
+                    state = "[COLOR springgreen][Enabled][/COLOR]"
+                    goto = "false"
+                else:
+                    state = "[COLOR red][Disabled][/COLOR]"
+                    goto = "true"
+
+                directory.add_file("{0} {1}".format(state, addonnames[i]), {'mode': 'toggleaddon', 'name': addonids[i], 'url': goto}, icon=icon, fanart=fanart)
+    else:
+        from resources.libs import db
+        for addonid in addonids:
+            db.toggle_addon(addonid, 'true')
+        xbmc.executebuiltin('Container.Refresh()')
 
 
 def remove_addon_data_menu():

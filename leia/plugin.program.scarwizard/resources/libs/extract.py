@@ -33,7 +33,7 @@ from resources.libs.common import tools
 
 def all(_in, _out, ignore=None, title=None):
     progress_dialog = xbmcgui.DialogProgress()
-    progress_dialog.create(CONFIG.ADDONTITLE, "Extracting Content", '', '')
+    progress_dialog.create(CONFIG.ADDONTITLE, "Extracting Content")
     
     return all_with_progress(_in, _out, progress_dialog, ignore, title)
 
@@ -49,7 +49,7 @@ def all_with_progress(_in, _out, dp, ignore, title):
     excludes = []
 
     try:
-        zin = zipfile.ZipFile(_in,  'r')
+        zin = zipfile.ZipFile(_in,  'r', allowZip64=True)
     except Exception as e:
         errors += 1
         error += '%s\n' % e
@@ -106,6 +106,8 @@ def all_with_progress(_in, _out, dp, ignore, title):
             skip = True
         elif item.filename == 'userdata/profiles.xml' and CONFIG.KEEPPROFILES == 'true':
             skip = True
+        elif item.filename == 'userdata/guisettings.xml' and CONFIG.KEEPGUISETTINGS == 'true':
+            skip = True
         elif item.filename == 'userdata/playercorefactory.xml' and CONFIG.KEEPPLAYERCORE == 'true':
             skip = True
         elif item.filename == 'userdata/advancedsettings.xml' and CONFIG.KEEPADVANCED == 'true':
@@ -145,7 +147,7 @@ def all_with_progress(_in, _out, dp, ignore, title):
                 error += errormsg
                 logging.log('Error Extracting: {0}({1})'.format(item.filename, str(e)), level=xbmc.LOGERROR)
                 pass
-        dp.update(prog, line1, line2, line3)
+        dp.update(prog, line1 + '\n' + line2 + '\n' + line3)
         if dp.iscanceled():
             break
             

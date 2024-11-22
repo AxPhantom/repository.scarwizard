@@ -36,7 +36,7 @@ else:
     import codecs
     import warnings
 
-    def open(file, mode='r', buffering=-1, encoding=None, errors=None, newline=None, closefd=True, opener=None):
+    def open(file, mode='r', buffering=-1, encoding='utf-8', errors=None, newline=None, closefd=True, opener=None):
         if newline is not None:
             warnings.warn('newline is not supported in py2')
         if not closefd:
@@ -54,6 +54,8 @@ except ImportError:  # Python 2
     from urlparse import urlparse
     import HTMLParser
 
+from contextlib import contextmanager
+
 from resources.libs.common.config import CONFIG
 
 
@@ -63,14 +65,20 @@ from resources.libs.common.config import CONFIG
 
 
 def read_from_file(file, mode='r'):
-    f = open(file, mode)
+    f = open(file, mode, encoding='utf-8')
+    a = f.read()
+    f.close()
+    return a
+
+def read_from_file_old(file, mode='r'):
+    f = open(file, mode, encoding=None)
     a = f.read()
     f.close()
     return a
 
 
 def write_to_file(file, content, mode='w'):
-    f = open(file, mode)
+    f = open(file, mode, encoding='utf-8')
     f.write(content)
     f.close()
 
@@ -179,7 +187,7 @@ def file_count(home, excludes=True):
     item = []
     for base, dirs, files in os.walk(home):
         if excludes:
-            dirs[:] = [d for d in dirs if d not in CONFIG.EXCLUDE_DIRS]
+            dirs[:] = [d for d in dirs if os.path.join(base, d) not in CONFIG.EXCLUDE_DIRS]
             files[:] = [f for f in files if f not in CONFIG.EXCLUDE_FILES]
         for file in files:
             item.append(file)
@@ -190,7 +198,8 @@ def ensure_folders(folder=None):
     import xbmcvfs
 
     name = ''
-    folders = [CONFIG.BACKUPLOCATION, CONFIG.MYBUILDS, CONFIG.USERDATA, CONFIG.ADDON_DATA, CONFIG.PACKAGES]
+    folders = [CONFIG.BACKUPLOCATION, CONFIG.MYBUILDS, CONFIG.PLUGIN_DATA,
+               CONFIG.USERDATA, CONFIG.ADDON_DATA, CONFIG.PACKAGES]
 
     try:
         if folder is not None and not os.path.exists(folder):
@@ -207,12 +216,21 @@ def ensure_folders(folder=None):
         dialog = xbmcgui.Dialog()
 
         dialog.ok(CONFIG.ADDONTITLE,
-                      "[COLOR {0}]Error creating add-on directories:[/COLOR]".format(CONFIG.COLOR2),
-                      "[COLOR {0}]{1}[/COLOR]".format(CONFIG.COLOR1, name))
+                      "[COLOR {0}]Error creating add-on directories:[/COLOR]".format(CONFIG.COLOR2)
+                      +'\n'+"[COLOR {0}]{1}[/COLOR]".format(CONFIG.COLOR1, name))
 
 #########################
 #  Utility Functions    #
 #########################
+
+
+@contextmanager
+def busy_dialog():
+    xbmc.executebuiltin('ActivateWindow(busydialognocancel)')
+    try:
+        yield
+    finally:
+        xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
 
 
 def convert_size(num, suffix='B'):
@@ -342,18 +360,12 @@ def parse_dom(html, name=u"", attrs={}, ret=False):
     return ret_lst
 
 
-def get_date(days=0, now=False):
-    from datetime import date
-    from datetime import datetime
-    from datetime import timedelta
+def get_date(days=0, formatted=False):
+    import time
 
-    if now:
-        return datetime.now()
-    else:
-        if days == 0:
-            return date.today()
-        else:
-            return date.today() + timedelta(days)
+    value = time.time() + (days * 24 * 60 * 60)  # days * 24h * 60m * 60s
+
+    return value if not formatted else time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(value))
 
 
 def basecode(text, encode=True):
@@ -385,11 +397,7 @@ def platform():
 
 
 def kodi_version():
-    if 17.0 <= CONFIG.KODIV <= 17.9:
-        vername = 'Krypton'
-    elif 18.0 <= CONFIG.KODIV <= 18.9:
-        vername = 'Leia'
-    elif 19.0 <= CONFIG.KODIV <= 19.9:
+    if 19.0 <= CONFIG.KODIV <= 19.9:
         vername = 'Matrix'
     else:
         vername = "Unknown"
@@ -438,24 +446,22 @@ def convert_special(url, over=False):
     
     total = file_count(url)
     start = 0
-    progress_dialog.create(CONFIG.ADDONTITLE,
-                  "[COLOR {0}]Changing Physical Paths To Special".format(CONFIG.COLOR2),
-                  "",
-                  "Please Wait[/COLOR]")
+    progress_dialog.create(CONFIG.ADDONTITLE, "[COLOR {0}]Changing Physical Paths To Special".format(CONFIG.COLOR2) + "\n" + "Please Wait[/COLOR]")
     for root, dirs, files in os.walk(url):
         for file in files:
             start += 1
             perc = int(percentage(start, total))
             if file.endswith(".xml") or file.endswith(".hash") or file.endswith("properies"):
-                progress_dialog.update(perc,
-                              "[COLOR {0}]Scanning: [COLOR {1}]{2}[/COLOR]".format(CONFIG.COLOR2, CONFIG.COLOR1, root.replace(CONFIG.HOME, '')),
-                              "[COLOR {0}]{1}[/COLOR]".format(CONFIG.COLOR1, file),
-                              "Please Wait[/COLOR]")
+                progress_dialog.update(perc, "[COLOR {0}]Scanning: [COLOR {1}]{2}[/COLOR]".format(CONFIG.COLOR2, CONFIG.COLOR1, root.replace(CONFIG.HOME, '')) + '\n' + "[COLOR {0}]{1}[/COLOR]".format(CONFIG.COLOR1, file) + '\n' + "Please Wait[/COLOR]")
                 a = read_from_file(os.path.join(root, file))
                 encodedpath = quote(CONFIG.HOME)
                 encodedpath2 = quote(CONFIG.HOME).replace('%3A', '%3a').replace('%5C', '%5c')
                 b = a.replace(CONFIG.HOME, 'special://home/').replace(encodedpath, 'special://home/').replace(encodedpath2, 'special://home/')
-                write_to_file(os.path.join(root, file), b)
+                
+                try:
+                    write_to_file(os.path.join(root, file), b)
+                except IOError as e:
+                    logging.log('Unable to open file to convert special paths: {}'.format(os.path.join(root, file)))
 
                 if progress_dialog.iscanceled():
                     progress_dialog.close()
@@ -571,8 +577,7 @@ def ascii_check(use=None, over=False):
         for file in files:
             prog.append(file)
             prog2 = int(len(prog) / float(items) * 100)
-            progress_dialog.update(prog2, "[COLOR {0}]Checking for non ASCII files".format(CONFIG.COLOR2),
-                          '[COLOR {0}]{1}[/COLOR]'.format(CONFIG.COLOR1, file), 'Please Wait[/COLOR]')
+            progress_dialog.update(prog2, "[COLOR {0}]Checking for non ASCII files".format(CONFIG.COLOR2) + '\n' + '[COLOR {0}]{1}[/COLOR]'.format(CONFIG.COLOR1, file) + '\n' + 'Please Wait[/COLOR]')
             try:
                 file.encode('ascii')
             except UnicodeEncodeError:
@@ -701,7 +706,7 @@ def _check_url(url, cred):
                 logging.log("URL requires authentication for {0}: Status code [{1}]".format(url, response.status_code), level=xbmc.LOGDEBUG)
                 return 'auth'
             else:
-                logging.log("URL check failed for {0}: Status code [{1}]".format(url, response.status_code), level=xbmc.LOGEBUG)
+                logging.log("URL check failed for {0}: Status code [{1}]".format(url, response.status_code), level=xbmc.LOGDEBUG)
                 return False
         except Exception as e:
             logging.log("URL check error for {0}: [{1}]".format(url, e), level=xbmc.LOGDEBUG)

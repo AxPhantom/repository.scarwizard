@@ -20,6 +20,7 @@
 import xbmc
 import xbmcgui
 
+import time
 from datetime import datetime
 from datetime import timedelta
 
@@ -61,7 +62,7 @@ def auto_install_repo():
                 if repo_response:
                     progress_dialog = xbmcgui.DialogProgress()
                     
-                    progress_dialog.create(CONFIG.ADDONTITLE, 'Downloading Repo...', '', 'Please Wait')
+                    progress_dialog.create(CONFIG.ADDONTITLE, 'Downloading Repo...' + '\n' + 'Please Wait')
                     tools.ensure_folders(CONFIG.PACKAGES)
                     lib = os.path.join(CONFIG.PACKAGES, installzip)
 
@@ -91,7 +92,7 @@ def auto_install_repo():
                     progress_dialog.close()
                     xbmc.sleep(500)
 
-                    logging.log("[Auto Install Repo] Successfully Installed", level=xbmc.LOGNOTICE)
+                    logging.log("[Auto Install Repo] Successfully Installed", level=xbmc.LOGINFO)
                 else:
                     logging.log_notify("[COLOR {0}]Repo Install Error[/COLOR]".format(CONFIG.COLOR1),
                                        "[COLOR {0}]Invalid URL for zip![/COLOR]".format(CONFIG.COLOR2))
@@ -104,64 +105,57 @@ def auto_install_repo():
                                "[COLOR {0}]Invalid addon.xml file![/COLOR]".format(CONFIG.COLOR2))
             logging.log("[Auto Install Repo] Unable to read the addon.xml file.", level=xbmc.LOGERROR)
     elif not CONFIG.AUTOINSTALL == 'Yes':
-        logging.log("[Auto Install Repo] Not Enabled", level=xbmc.LOGNOTICE)
+        logging.log("[Auto Install Repo] Not Enabled", level=xbmc.LOGINFO)
     elif os.path.exists(os.path.join(CONFIG.ADDONS, CONFIG.REPOID)):
         logging.log("[Auto Install Repo] Repository already installed")
 
 
 def show_notification():
-    if not CONFIG.NOTIFY == 'true':
-        response = tools.open_url(CONFIG.NOTIFICATION)
-        if response:
-            note_id, msg = window.split_notify(CONFIG.NOTIFICATION)
-            if note_id:
-                try:
-                    note_id = int(note_id)
-                    if note_id == CONFIG.NOTEID:
-                        if CONFIG.NOTEDISMISS == 'false':
-                            window.show_notification(msg)
-                        else:
-                            logging.log("[Notifications] id[{0}] Dismissed".format(int(id)), level=xbmc.LOGNOTICE)
-                    elif note_id > CONFIG.NOTEID:
-                        logging.log("[Notifications] id: {0}".format(str(id)), level=xbmc.LOGNOTICE)
-                        CONFIG.set_setting('noteid', str(id))
-                        CONFIG.set_setting('notedismiss', 'false')
-                        window.show_notification(msg=msg)
-                        logging.log("[Notifications] Complete", level=xbmc.LOGNOTICE)
-                except Exception as e:
-                    logging.log("Error on Notifications Window: {0}".format(str(e)), level=xbmc.LOGERROR)
+    note_id, msg = window.split_notify(CONFIG.NOTIFICATION)
+    
+    if note_id:
+        if note_id == CONFIG.NOTEID:
+            if CONFIG.NOTEDISMISS == 'false':
+                window.show_notification(msg)
             else:
-                logging.log("[Notifications] Text File not formatted Correctly")
-        else:
-            logging.log("[Notifications] URL({0}): {1}".format(CONFIG.NOTIFICATION, response), level=xbmc.LOGNOTICE)
+                logging.log('[Notifications] No new notifications.', level=xbmc.LOGINFO)
+        elif note_id > CONFIG.NOTEID:
+            logging.log('[Notifications] Showing notification {0}'
+                        .format(note_id))
+            CONFIG.set_setting('noteid', note_id)
+            CONFIG.set_setting('notedismiss', 'false')
+            window.show_notification(msg)
     else:
-        logging.log("[Notifications] Turned Off", level=xbmc.LOGNOTICE)
+        logging.log('[Notifications] Notifications file at {0} not formatted correctly.'
+                    .format(CONFIG.NOTIFICATION),
+                    level=xbmc.LOGINFO)
 
 
 def installed_build_check():
-    # This may not be necessary anymore
-    #
-    # db.kodi_17_fix()
-    # if CONFIG.SKIN in ['skin.confluence', 'skin.estuary', 'skin.estouchy']:
-    #     check.check_skin()
-
     dialog = xbmcgui.Dialog()
 
-    if not CONFIG.EXTRACT == '100' and not CONFIG.BUILDNAME == "":
-        logging.log("[Build Installed Check] Build was extracted {0}/100 with [ERRORS: {1}]".format(CONFIG.EXTRACT, CONFIG.EXTERROR), level=xbmc.LOGNOTICE)
+    if not CONFIG.EXTRACT == '100' and CONFIG.EXTERROR > 0:
+        logging.log("[Build Installed Check] Build was extracted {0}/100 with [ERRORS: {1}]".format(CONFIG.EXTRACT,
+                                                                                                    CONFIG.EXTERROR),
+                    level=xbmc.LOGINFO)
         yes = dialog.yesno(CONFIG.ADDONTITLE,
-                               '[COLOR {0}]{1}[/COLOR] [COLOR {2}]was not installed correctly!'.format(CONFIG.COLOR1, CONFIG.COLOR2, CONFIG.BUILDNAME),
-                               'Installed: [COLOR {0}]{1}[/COLOR] / Error Count: [COLOR {2}]{3}[/COLOR]'.format(CONFIG.COLOR1, CONFIG.EXTRACT, CONFIG.COLOR1, CONFIG.EXTERROR),
-                               'Would you like to try again?[/COLOR]',
-                               nolabel='[B]No Thanks![/B]', yeslabel='[B]Retry Install[/B]')
+                           '[COLOR {0}]{2}[/COLOR] [COLOR {1}]was not installed correctly![/COLOR]'.format(CONFIG.COLOR1,
+                                                                                                   CONFIG.COLOR2,
+                                                                                                   CONFIG.BUILDNAME)
+                           +'\n'+('Installed: [COLOR {0}]{1}[/COLOR] / '
+                            'Error Count: [COLOR {2}]{3}[/COLOR]').format(CONFIG.COLOR1, CONFIG.EXTRACT, CONFIG.COLOR1,
+                                                                          CONFIG.EXTERROR)
+                           +'\n'+'Would you like to try again?[/COLOR]', nolabel='[B]No Thanks![/B]',
+                           yeslabel='[B]Retry Install[/B]')
         CONFIG.clear_setting('build')
         if yes:
-            xbmc.executebuiltin("PlayMedia(plugin://{0}/?mode=install&name={1}&url=fresh)".format(CONFIG.ADDON_ID, quote_plus(CONFIG.BUILDNAME)))
-            logging.log("[Build Installed Check] Fresh Install Re-activated", level=xbmc.LOGNOTICE)
+            xbmc.executebuiltin("PlayMedia(plugin://{0}/?mode=install&name={1}&url=fresh)".format(CONFIG.ADDON_ID,
+                                                                                                  quote_plus(CONFIG.BUILDNAME)))
+            logging.log("[Build Installed Check] Fresh Install Re-activated", level=xbmc.LOGINFO)
         else:
             logging.log("[Build Installed Check] Reinstall Ignored")
     elif CONFIG.SKIN in ['skin.confluence', 'skin.estuary', 'skin.estouchy']:
-        logging.log("[Build Installed Check] Incorrect skin: {0}".format(CONFIG.SKIN), level=xbmc.LOGNOTICE)
+        logging.log("[Build Installed Check] Incorrect skin: {0}".format(CONFIG.SKIN), level=xbmc.LOGINFO)
         defaults = CONFIG.get_setting('defaultskin')
         if not defaults == '':
             if os.path.exists(os.path.join(CONFIG.ADDONS, defaults)):
@@ -172,137 +166,155 @@ def installed_build_check():
 
             response = tools.open_url(gui_xml, check=True)
             if not response:
-                logging.log("[Build Installed Check] Guifix was set to http://", level=xbmc.LOGNOTICE)
+                logging.log("[Build Installed Check] Guifix was set to http://", level=xbmc.LOGINFO)
                 dialog.ok(CONFIG.ADDONTITLE,
-                              "[COLOR {0}]It looks like the skin settings was not applied to the build.".format(CONFIG.COLOR2),
-                              "Sadly no gui fix was attached to the build",
-                              "You will need to reinstall the build and make sure to do a force close[/COLOR]")
+                          "[COLOR {0}]It looks like the skin settings was not applied to the build.".format(CONFIG.COLOR2)
+                          +'\n'+"Sadly no gui fix was attached to the build"
+                          +'\n'+"You will need to reinstall the build and make sure to do a force close[/COLOR]")
             else:
                 yes = dialog.yesno(CONFIG.ADDONTITLE,
-                                       '{0} was not installed correctly!'.format(CONFIG.BUILDNAME),
-                                       'It looks like the skin settings was not applied to the build.',
-                                       'Would you like to apply the GuiFix?',
+                                       '{0} was not installed correctly!'.format(CONFIG.BUILDNAME)
+                                       +'\n'+'It looks like the skin settings was not applied to the build.'
+                                       +'\n'+'Would you like to apply the GuiFix?',
                                        nolabel='[B]No, Cancel[/B]', yeslabel='[B]Apply Fix[/B]')
                 if yes:
-                    xbmc.executebuiltin("PlayMedia(plugin://{0}/?mode=install&name={1}&url=gui)".format(CONFIG.ADDON_ID, quote_plus(CONFIG.BUILDNAME)))
+                    xbmc.executebuiltin("PlayMedia(plugin://{0}/?mode=install&name={1}&url=gui)".format(CONFIG.ADDON_ID,
+                                                                                                        quote_plus(CONFIG.BUILDNAME)))
                     logging.log("[Build Installed Check] Guifix attempting to install")
                 else:
-                    logging.log('[Build Installed Check] Guifix url working but cancelled: {0}'.format(gui_xml), level=xbmc.LOGNOTICE)
+                    logging.log('[Build Installed Check] Guifix url working but cancelled: {0}'.format(gui_xml),
+                                level=xbmc.LOGINFO)
     else:
-        logging.log('[Build Installed Check] Install seems to be completed correctly', level=xbmc.LOGNOTICE)
+        logging.log('[Build Installed Check] Install seems to be completed correctly', level=xbmc.LOGINFO)
+        
+    if CONFIG.get_setting('installed') == 'true':
+        if CONFIG.get_setting('keeptrakt') == 'true':
+            from resources.libs import traktit
+            logging.log('[Build Installed Check] Restoring Trakt Data', level=xbmc.LOGINFO)
+            traktit.trakt_it('restore', 'all')
+        if CONFIG.get_setting('keepdebrid') == 'true':
+            from resources.libs import debridit
+            logging.log('[Build Installed Check] Restoring Real Debrid Data', level=xbmc.LOGINFO)
+            debridit.debrid_it('restore', 'all')
+        if CONFIG.get_setting('keeplogin') == 'true':
+            from resources.libs import loginit
+            logging.log('[Build Installed Check] Restoring Login Data', level=xbmc.LOGINFO)
+            loginit.login_it('restore', 'all')
 
-    if CONFIG.get_setting('keeptrakt') == 'true':
-        from resources.libs import traktit
-        traktit.trakt_it('restore', 'all')
-        logging.log('[Build Installed Check] Restoring Trakt Data', level=xbmc.LOGNOTICE)
-    if CONFIG.get_setting('keepdebrid') == 'true':
-        from resources.libs import debridit
-        debridit.debrid_it('restore', 'all')
-        logging.log('[Build Installed Check] Restoring Real Debrid Data', level=xbmc.LOGNOTICE)
-    if CONFIG.get_setting('keeplogin') == 'true':
-        from resources.libs import loginit
-        loginit.login_it('restore', 'all')
-        logging.log('[Build Installed Check] Restoring Login Data', level=xbmc.LOGNOTICE)
-
-    CONFIG.clear_setting('install')
+        CONFIG.clear_setting('install')
 
 
 def build_update_check():
     response = tools.open_url(CONFIG.BUILDFILE, check=True)
 
     if not response:
-        logging.log("[Build Check] Not a valid URL for Build File: {0}".format(CONFIG.BUILDFILE), level=xbmc.LOGNOTICE)
+        logging.log("[Build Check] Not a valid URL for Build File: {0}".format(CONFIG.BUILDFILE), level=xbmc.LOGINFO)
     elif not CONFIG.BUILDNAME == '':
         if CONFIG.SKIN in ['skin.confluence', 'skin.estuary', 'skin.estouchy'] and not CONFIG.DEFAULTIGNORE == 'true':
             check.check_skin()
 
-        logging.log("[Build Check] Build Installed: Checking Updates", level=xbmc.LOGNOTICE)
+        logging.log("[Build Check] Build Installed: Checking Updates", level=xbmc.LOGINFO)
         check.check_build_update()
 
-    CONFIG.set_setting('lastbuildcheck', str(tools.get_date(now=True)))
+    CONFIG.set_setting('nextbuildcheck', tools.get_date(days=CONFIG.UPDATECHECK, formatted=True))
 
 
 def save_trakt():
-    if CONFIG.TRAKTSAVE <= str(tools.get_date()):
+    current_time = time.mktime(time.strptime(tools.get_date(formatted=True), "%Y-%m-%d %H:%M:%S"))
+    next_save = time.mktime(time.strptime(CONFIG.get_setting('traktnextsave'), "%Y-%m-%d %H:%M:%S"))
+    
+    if next_save <= current_time:
         from resources.libs import traktit
-        logging.log("[Trakt Data] Saving all Data", level=xbmc.LOGNOTICE)
+        logging.log("[Trakt Data] Saving all Data", level=xbmc.LOGINFO)
         traktit.auto_update('all')
-        CONFIG.set_setting('traktlastsave', str(tools.get_date(days=3)))
+        CONFIG.set_setting('traktnextsave', tools.get_date(days=3, formatted=True))
     else:
-        logging.log("[Trakt Data] Next Auto Save isn't until: {0} / TODAY is: {1}".format(CONFIG.get_setting('traktlastsave'), str(
-            tools.get_date())), level=xbmc.LOGNOTICE)
+        logging.log("[Trakt Data] Next Auto Save isn't until: {0} / TODAY is: {1}".format(CONFIG.get_setting('traktnextsave'),
+                                                                                          tools.get_date(formatted=True)),
+                    level=xbmc.LOGINFO)
 
 
 def save_debrid():
-    if CONFIG.DEBRIDSAVE <= str(tools.get_date()):
+    current_time = time.mktime(time.strptime(tools.get_date(formatted=True), "%Y-%m-%d %H:%M:%S"))
+    next_save = time.mktime(time.strptime(CONFIG.get_setting('debridnextsave'), "%Y-%m-%d %H:%M:%S"))
+    
+    if next_save <= current_time:
         from resources.libs import debridit
-        logging.log("[Debrid Data] Saving all Data", level=xbmc.LOGNOTICE)
+        logging.log("[Debrid Data] Saving all Data", level=xbmc.LOGINFO)
         debridit.auto_update('all')
-        CONFIG.set_setting('debridlastsave', str(tools.get_date(days=3)))
+        CONFIG.set_setting('debridnextsave', tools.get_date(days=3, formatted=True))
     else:
-        logging.log("[Debrid Data] Next Auto Save isn't until: {0} / TODAY is: {1}".format(CONFIG.get_setting('debridlastsave'), str(
-            tools.get_date())), level=xbmc.LOGNOTICE)
+        logging.log("[Debrid Data] Next Auto Save isn't until: {0} / TODAY is: {1}".format(CONFIG.get_setting('debridnextsave'),
+                                                                                           tools.get_date(formatted=True)),
+                    level=xbmc.LOGINFO)
 
 
 def save_login():
-    if CONFIG.LOGINSAVE <= str(tools.get_date()):
+    current_time = time.mktime(time.strptime(tools.get_date(formatted=True), "%Y-%m-%d %H:%M:%S"))
+    next_save = time.mktime(time.strptime(CONFIG.get_setting('loginnextsave'), "%Y-%m-%d %H:%M:%S"))
+    
+    if next_save <= current_time:
         from resources.libs import loginit
-        logging.log("[Login Info] Saving all Data", level=xbmc.LOGNOTICE)
+        logging.log("[Login Info] Saving all Data", level=xbmc.LOGINFO)
         loginit.auto_update('all')
-        CONFIG.set_setting('loginlastsave', str(tools.get_date(days=3)))
+        CONFIG.set_setting('loginnextsave', tools.get_date(days=3, formatted=True))
     else:
-        logging.log("[Login Info] Next Auto Save isn't until: {0} / TODAY is: {1}".format(CONFIG.get_setting('loginlastsave'), str(
-            tools.get_date())), level=xbmc.LOGNOTICE)
+        logging.log("[Login Info] Next Auto Save isn't until: {0} / TODAY is: {1}".format(CONFIG.get_setting('loginnextsave'),
+                                                                                          tools.get_date(formatted=True)),
+                    level=xbmc.LOGINFO)
 
 
 def auto_clean():
     service = False
-    days = [tools.get_date(), tools.get_date(days=1), tools.get_date(days=3), tools.get_date(days=7), tools.get_date(days=30)]
+    days = [tools.get_date(formatted=True), tools.get_date(days=1, formatted=True), tools.get_date(days=3, formatted=True), tools.get_date(days=7, formatted=True),
+            tools.get_date(days=30, formatted=True)]
 
-    freq = int(float(CONFIG.AUTOFREQ))
+    freq = int(CONFIG.AUTOFREQ)
+    next_cleanup = time.mktime(time.strptime(CONFIG.NEXTCLEANDATE, "%Y-%m-%d %H:%M:%S"))
 
-    if CONFIG.get_setting('nextautocleanup') <= str(tools.get_date()) or freq == 1:
+    if next_cleanup <= tools.get_date() or freq == 0:
         service = True
         next_run = days[freq]
-        CONFIG.set_setting('nextautocleanup', str(next_run))
+        CONFIG.set_setting('nextautocleanup', next_run)
     else:
-        logging.log("[Auto Clean Up] Next Clean Up {0}".format(CONFIG.get_setting('nextautocleanup')), level=xbmc.LOGNOTICE)
+        logging.log("[Auto Clean Up] Next Clean Up {0}".format(CONFIG.NEXTCLEANDATE),
+                    level=xbmc.LOGINFO)
     if service:
         if CONFIG.AUTOCACHE == 'true':
-            logging.log('[Auto Clean Up] Cache: On', level=xbmc.LOGNOTICE)
+            logging.log('[Auto Clean Up] Cache: On', level=xbmc.LOGINFO)
             clear.clear_cache(True)
         else:
-            logging.log('[Auto Clean Up] Cache: Off', level=xbmc.LOGNOTICE)
+            logging.log('[Auto Clean Up] Cache: Off', level=xbmc.LOGINFO)
         if CONFIG.AUTOTHUMBS == 'true':
-            logging.log('[Auto Clean Up] Old Thumbs: On', level=xbmc.LOGNOTICE)
+            logging.log('[Auto Clean Up] Old Thumbs: On', level=xbmc.LOGINFO)
             clear.old_thumbs()
         else:
-            logging.log('[Auto Clean Up] Old Thumbs: Off', level=xbmc.LOGNOTICE)
+            logging.log('[Auto Clean Up] Old Thumbs: Off', level=xbmc.LOGINFO)
         if CONFIG.AUTOPACKAGES == 'true':
-            logging.log('[Auto Clean Up] Packages: On', level=xbmc.LOGNOTICE)
+            logging.log('[Auto Clean Up] Packages: On', level=xbmc.LOGINFO)
             clear.clear_packages_startup()
         else:
-            logging.log('[Auto Clean Up] Packages: Off', level=xbmc.LOGNOTICE)
+            logging.log('[Auto Clean Up] Packages: Off', level=xbmc.LOGINFO)
 
 
 def stop_if_duplicate():
-    NOW = datetime.now()
+    NOW = time.time()
     temp = CONFIG.get_setting('time_started')
     
-    if not temp == '':
-        if temp > str(NOW - timedelta(minutes=2)):
-            logging.log("Killing Start Up Script", xbmc.LOGDEBUG)
+    if temp:
+        if temp > NOW - (60 * 2):
+            logging.log('Killing Start Up Script')
             sys.exit()
             
     logging.log("{0}".format(NOW))
-    CONFIG.set_setting('time_started', str(NOW))
+    CONFIG.set_setting('time_started', NOW)
     xbmc.sleep(1000)
     
-    if not CONFIG.get_setting('time_started') == str(NOW):
-        logging.log("Killing Start Up Script", xbmc.LOGDEBUG)
+    if not CONFIG.get_setting('time_started') == NOW:
+        logging.log('Killing Start Up Script')
         sys.exit()
     else:
-        logging.log("Continuing Start Up Script", xbmc.LOGDEBUG)
+        logging.log('Continuing Start Up Script')
 
 
 def check_for_video():
@@ -312,99 +324,118 @@ def check_for_video():
 
 # Don't run the script while video is playing :)
 check_for_video()
-# Stop this script if it's been run more than once
-if CONFIG.KODIV < 18:
-    stop_if_duplicate()
-# Ensure that the wizard's name matches its folder
-check.check_paths()
 # Ensure that any needed folders are created
 tools.ensure_folders()
+# Stop this script if it's been run more than once
+# if CONFIG.KODIV < 18:
+    # stop_if_duplicate()
+# Ensure that the wizard's name matches its folder
+check.check_paths()
 
 
 # FIRST RUN SETTINGS
 if CONFIG.get_setting('first_install') == 'true':
-    logging.log("[First Run] Showing Save Data Settings", level=xbmc.LOGNOTICE)
+    logging.log("[First Run] Showing Save Data Settings", level=xbmc.LOGINFO)
     window.show_save_data_settings()
 else:
-    logging.log("[First Run] Skipping Save Data Settings", level=xbmc.LOGNOTICE)
+    logging.log("[First Run] Skipping Save Data Settings", level=xbmc.LOGINFO)
 
 # BUILD INSTALL PROMPT
-if tools.open_url(CONFIG.BUILDFILE, check=True) and CONFIG.get_setting('installed') == '':
-    logging.log("[Current Build Check] Build Not Installed", level=xbmc.LOGNOTICE)
+if tools.open_url(CONFIG.BUILDFILE, check=True) and CONFIG.get_setting('installed') == 'false':
+    logging.log("[Current Build Check] Build Not Installed", level=xbmc.LOGINFO)
     window.show_build_prompt()
 else:
-    logging.log("[Current Build Check] Build Installed: {0}".format(CONFIG.BUILDNAME), level=xbmc.LOGNOTICE)
-    
+    logging.log("[Current Build Check] Build Installed: {0}".format(CONFIG.BUILDNAME), level=xbmc.LOGINFO)
+
+# ENABLE ALL ADDONS AFTER INSTALL
+if CONFIG.get_setting('enable_all') == 'true':
+    logging.log("[Post Install] Enabling all Add-ons", level=xbmc.LOGINFO)
+    from resources.libs.gui import menu
+    menu.enable_addons(all=True)
+    if os.path.exists(os.path.join(CONFIG.USERDATA, '.enableall')):
+    	logging.log("[Post Install] .enableall file found in userdata. Deleting..", level=xbmc.LOGINFO)
+    	import xbmcvfs
+    	xbmcvfs.delete(os.path.join(CONFIG.USERDATA, '.enableall'))
+    xbmc.executebuiltin('UpdateLocalAddons')
+    xbmc.executebuiltin('UpdateAddonRepos')
+    db.force_check_updates(auto=True)
+    CONFIG.set_setting('enable_all', 'false')
+    xbmc.executebuiltin("ReloadSkin()")
+    tools.reload_profile(xbmc.getInfoLabel('System.ProfileName'))
+
 # BUILD UPDATE CHECK
-buildcheck = CONFIG.get_setting('lastbuildcheck')
-if CONFIG.get_setting('buildname') != '' and buildcheck <= str(tools.get_date(days=CONFIG.UPDATECHECK, now=True)):
-    logging.log("[Build Update Check] Started", level=xbmc.LOGNOTICE)
-    build_update_check()
+buildcheck = CONFIG.get_setting('nextbuildcheck')
+if CONFIG.get_setting('buildname'):
+    current_time = time.time()
+    epoch_check = time.mktime(time.strptime(buildcheck, "%Y-%m-%d %H:%M:%S"))
+    
+    if current_time >= epoch_check:
+        logging.log("[Build Update Check] Started", level=xbmc.LOGINFO)
+        build_update_check()
 else:
-    logging.log("[Build Update Check] Next Check: {0}".format(buildcheck), level=xbmc.LOGNOTICE)
+    logging.log("[Build Update Check] Next Check: {0}".format(buildcheck), level=xbmc.LOGINFO)
 
 # AUTO INSTALL REPO
 if CONFIG.AUTOINSTALL == 'Yes':
-    logging.log("[Auto Install Repo] Started", level=xbmc.LOGNOTICE)
+    logging.log("[Auto Install Repo] Started", level=xbmc.LOGINFO)
     auto_install_repo()
 else:
-    logging.log("[Auto Install Repo] Not Enabled", level=xbmc.LOGNOTICE)
+    logging.log("[Auto Install Repo] Not Enabled", level=xbmc.LOGINFO)
 
 # REINSTALL ELIGIBLE BINARIES
 binarytxt = os.path.join(CONFIG.USERDATA, 'build_binaries.txt')
 if os.path.exists(binarytxt):
-    logging.log("[Binary Detection] Reinstalling Eligible Binary Addons", level=xbmc.LOGNOTICE)
+    logging.log("[Binary Detection] Reinstalling Eligible Binary Addons", level=xbmc.LOGINFO)
     from resources.libs import restore
     restore.restore('binaries')
 else:
-    logging.log("[Binary Detection] Eligible Binary Addons to Reinstall", level=xbmc.LOGNOTICE)
+    logging.log("[Binary Detection] Eligible Binary Addons to Reinstall", level=xbmc.LOGINFO)
     
 # AUTO UPDATE WIZARD
 if CONFIG.AUTOUPDATE == 'Yes':
-    logging.log("[Auto Update Wizard] Started", level=xbmc.LOGNOTICE)
-    update.wizard_update('startup')
+    logging.log("[Auto Update Wizard] Started", level=xbmc.LOGINFO)
+    update.wizard_update()
 else:
-    logging.log("[Auto Update Wizard] Not Enabled", level=xbmc.LOGNOTICE)
+    logging.log("[Auto Update Wizard] Not Enabled", level=xbmc.LOGINFO)
 
 # SHOW NOTIFICATIONS
 if CONFIG.ENABLE_NOTIFICATION == 'Yes':
-    logging.log("[Notifications] Started", level=xbmc.LOGNOTICE)
     show_notification()
 else:
-    logging.log("[Notifications] Not Enabled", level=xbmc.LOGNOTICE)
+    logging.log('[Notifications] Not Enabled', level=xbmc.LOGINFO)
 
 # INSTALLED BUILD CHECK
 if CONFIG.get_setting('installed') == 'true':
-    logging.log("[Build Installed Check] Started", level=xbmc.LOGNOTICE)
+    logging.log("[Build Installed Check] Started", level=xbmc.LOGINFO)
     installed_build_check()
 else:
-    logging.log("[Build Installed Check] Not Enabled", level=xbmc.LOGNOTICE)
+    logging.log("[Build Installed Check] Not Enabled", level=xbmc.LOGINFO)
 
 # SAVE TRAKT
 if CONFIG.get_setting('keeptrakt') == 'true':
-    logging.log("[Trakt Data] Started", level=xbmc.LOGNOTICE)
+    logging.log("[Trakt Data] Started", level=xbmc.LOGINFO)
     save_trakt()
 else:
-    logging.log("[Trakt Data] Not Enabled", level=xbmc.LOGNOTICE)
+    logging.log("[Trakt Data] Not Enabled", level=xbmc.LOGINFO)
 
 # SAVE DEBRID
 if CONFIG.get_setting('keepdebrid') == 'true':
-    logging.log("[Debrid Data] Started", level=xbmc.LOGNOTICE)
+    logging.log("[Debrid Data] Started", level=xbmc.LOGINFO)
     save_debrid()
 else:
-    logging.log("[Debrid Data] Not Enabled", level=xbmc.LOGNOTICE)
+    logging.log("[Debrid Data] Not Enabled", level=xbmc.LOGINFO)
 
 # SAVE LOGIN
 if CONFIG.get_setting('keeplogin') == 'true':
-    logging.log("[Login Info] Started", level=xbmc.LOGNOTICE)
+    logging.log("[Login Info] Started", level=xbmc.LOGINFO)
     save_login()
 else:
-    logging.log("[Login Info] Not Enabled", level=xbmc.LOGNOTICE)
+    logging.log("[Login Info] Not Enabled", level=xbmc.LOGINFO)
 
 # AUTO CLEAN
 if CONFIG.get_setting('autoclean') == 'true':
-    logging.log("[Auto Clean Up] Started", level=xbmc.LOGNOTICE)
+    logging.log("[Auto Clean Up] Started", level=xbmc.LOGINFO)
     auto_clean()
 else:
-    logging.log('[Auto Clean Up] Not Enabled', level=xbmc.LOGNOTICE)
+    logging.log('[Auto Clean Up] Not Enabled', level=xbmc.LOGINFO)
 

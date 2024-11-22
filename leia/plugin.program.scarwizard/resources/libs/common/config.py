@@ -19,6 +19,7 @@
 
 import xbmc
 import xbmcaddon
+import xbmcvfs
 
 import os
 
@@ -49,7 +50,7 @@ class Config:
         self.BUILDERNAME = uservar.BUILDERNAME
         self.EXCLUDES = uservar.EXCLUDES
         self.BUILDFILE = uservar.BUILDFILE
-        self.UPDATECHECK = uservar.UPDATECHECK if str(uservar.UPDATECHECK).isdigit() else 0
+        self.UPDATECHECK = uservar.UPDATECHECK
         self.APKFILE = uservar.APKFILE
         self.YOUTUBETITLE = uservar.YOUTUBETITLE
         self.YOUTUBEFILE = uservar.YOUTUBEFILE
@@ -105,44 +106,55 @@ class Config:
 
     def init_paths(self):
         # Static variables
-        self.CLEANFREQ = ['Every Startup', 'Every Day', 'Every Three Days', 'Weekly', 'Monthly']
-        self.LOGFILES = ['log', 'xbmc.old.log', 'kodi.log', 'kodi.old.log', 'spmc.log', 'spmc.old.log', 'tvmc.log',
-                         'tvmc.old.log', 'dmp']
-        self.DEFAULTPLUGINS = ['metadata.album.universal', 'metadata.artists.universal',
-                               'metadata.common.fanart.tv', 'metadata.common.imdb.com',
-                               'metadata.common.musicbrainz.org', 'metadata.themoviedb.org',
-                               'metadata.tvdb.com', 'service.xbmc.versioncheck']
-        self.USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko)' \
-                          'Chrome/35.0.1916.153 Safari/537.36 SE 2.X MetaSr 1.0'
-        self.DB_FILES = ['Addons', 'ADSP', 'Epg', 'MyMusic', 'MyVideos', 'Textures', 'TV', 'ViewModes']
-        self.EXCLUDE_FILES = ['onechannelcache.db', 'saltscache.db', 'saltscache.db-shm', 'saltscache.db-wal',
-                          'saltshd.lite.db', 'saltshd.lite.db-shm', 'saltshd.lite.db-wal', 'queue.db', 'commoncache.db',
-                          'access.log', 'trakt.db', 'video_cache.db', '.gitignore', '.DS_Store',
-                          'Textures13.db', 'Thumbs.db']
-        self.EXCLUDE_DIRS = [self.ADDON_ID, 'cache', 'system', 'packages', 'Thumbnails', 'peripheral_data', 'temp', 'My_Builds',
-                         'library', 'keymaps', 'cdm', 'archive_cache']
-        self.XMLS = ['advancedsettings.xml', 'sources.xml', 'favourites.xml', 'profiles.xml', 'playercorefactory.xml']
-        self.MODURL = 'http://tribeca.tvaddons.ag/tools/maintenance/modules/'
+        self.CLEANFREQ = ['Every Startup', 'Every Day', 'Every Three Days',
+                          'Weekly', 'Monthly']
+        self.LOGFILES = ['log', 'xbmc.old.log', 'kodi.log']
+        self.DEFAULTPLUGINS = ['metadata.album.universal',
+                               'metadata.artists.universal',
+                               'metadata.common.fanart.tv',
+                               'metadata.common.imdb.com',
+                               'metadata.common.musicbrainz.org',
+                               'metadata.themoviedb.org',
+                               'metadata.tvdb.com',
+                               'service.xbmc.versioncheck']
+        self.USER_AGENT = ('Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36'
+                           ' (KHTML, like Gecko) Chrome/35.0.1916.153 Safari'
+                           '/537.36 SE 2.X MetaSr 1.0')
+        self.DB_FILES = ['Addons', 'ADSP', 'Epg', 'MyMusic', 'MyVideos',
+                         'Textures', 'TV', 'ViewModes']
+        self.EXCLUDE_FILES = ['onechannelcache.db', 'saltscache.db',
+                              'saltscache.db-shm', 'saltscache.db-wal',
+                              'saltshd.lite.db', 'saltshd.lite.db-shm',
+                              'saltshd.lite.db-wal', 'queue.db',
+                              'commoncache.db', 'access.log', 'trakt.db',
+                              'video_cache.db', '.gitignore', '.DS_Store',
+                              'Textures13.db', 'Thumbs.db']
+        self.XMLS = ['advancedsettings.xml', 'sources.xml', 'favourites.xml',
+                     'profiles.xml', 'playercorefactory.xml', 'guisettings.xml']
+        self.MODURL = 'http://mirrors.kodi.tv/addons/matrix/'
         self.MODURL2 = 'http://mirrors.kodi.tv/addons/jarvis/'
-        self.DEPENDENCIES = ['script.module.bottle', 'script.module.certifi', 'script.module.chardet', 'script.module.idna', 'script.module.requests', 'script.module.six', 'script.module.urllib3', 'script.module.web-pdb']
+        self.DEPENDENCIES = ['script.module.bottle', 'script.module.certifi',
+                             'script.module.chardet', 'script.module.idna',
+                             'script.module.requests', 'script.module.six',
+                             'script.module.urllib3', 'script.module.web-pdb']
 
         # Default special paths
-        self.XBMC = xbmc.translatePath('special://xbmc/')
-        self.HOME = xbmc.translatePath('special://home/')
-        self.TEMP = xbmc.translatePath('special://temp/')
-        self.MASTERPROFILE = xbmc.translatePath('special://masterprofile/')
-        self.PROFILE = xbmc.translatePath('special://profile/')
-        self.SUBTITLES = xbmc.translatePath('special://subtitles/')
-        self.USERDATA = xbmc.translatePath('special://userdata/')
-        self.DATABASE = xbmc.translatePath('special://database/')
-        self.THUMBNAILS = xbmc.translatePath('special://thumbnails/')
-        self.RECORDINGS = xbmc.translatePath('special://recordings/')
-        self.SCREENSHOTS = xbmc.translatePath('special://screenshots/')
-        self.MUSICPLAYLISTS = xbmc.translatePath('special://musicplaylists/')
-        self.VIDEOPLAYLISTS = xbmc.translatePath('special://videoplaylists/')
-        self.CDRIPS = xbmc.translatePath('special://cdrips/')
-        self.SKIN = xbmc.translatePath('special://skin/')
-        self.LOGPATH = xbmc.translatePath('special://logpath/')
+        self.XBMC = xbmcvfs.translatePath('special://xbmc/')
+        self.HOME = xbmcvfs.translatePath('special://home/')
+        self.TEMP = xbmcvfs.translatePath('special://temp/')
+        self.MASTERPROFILE = xbmcvfs.translatePath('special://masterprofile/')
+        self.PROFILE = xbmcvfs.translatePath('special://profile/')
+        self.SUBTITLES = xbmcvfs.translatePath('special://subtitles/')
+        self.USERDATA = xbmcvfs.translatePath('special://userdata/')
+        self.DATABASE = xbmcvfs.translatePath('special://database/')
+        self.THUMBNAILS = xbmcvfs.translatePath('special://thumbnails/')
+        self.RECORDINGS = xbmcvfs.translatePath('special://recordings/')
+        self.SCREENSHOTS = xbmcvfs.translatePath('special://screenshots/')
+        self.MUSICPLAYLISTS = xbmcvfs.translatePath('special://musicplaylists/')
+        self.VIDEOPLAYLISTS = xbmcvfs.translatePath('special://videoplaylists/')
+        self.CDRIPS = xbmcvfs.translatePath('special://cdrips/')
+        self.SKIN = xbmcvfs.translatePath('special://skin/')
+        self.LOGPATH = xbmcvfs.translatePath('special://logpath/')
 
         # Constructed paths
         self.ADDONS = os.path.join(self.HOME, 'addons')
@@ -167,13 +179,26 @@ class Config:
         self.PROFILES = os.path.join(self.USERDATA, 'profiles.xml')
         self.WIZLOG = os.path.join(self.PLUGIN_DATA, 'wizard.log')
         self.WHITELIST = os.path.join(self.PLUGIN_DATA, 'whitelist.txt')
+        
+        self.EXCLUDE_DIRS = [self.ADDON_PATH,
+                             os.path.join(self.HOME, 'cache'),
+                             os.path.join(self.HOME, 'system'),
+                             os.path.join(self.HOME, 'temp'),
+                             os.path.join(self.HOME, 'My_Builds'),
+                             os.path.join(self.HOME, 'cdm'),
+                             os.path.join(self.ADDONS, 'temp'),
+                             os.path.join(self.ADDONS, 'packages'),
+                             os.path.join(self.ADDONS, 'archive_cache'),
+                             os.path.join(self.USERDATA, 'Thumbnails'),
+                             os.path.join(self.USERDATA, 'peripheral_data'),
+                             os.path.join(self.USERDATA, 'library')]
 
     def init_settings(self):
         self.FIRSTRUN = self.get_setting('first_install')
 
         # Build variables
         self.BUILDNAME = self.get_setting('buildname')
-        self.BUILDCHECK = self.get_setting('lastbuildcheck')
+        self.BUILDCHECK = self.get_setting('nextbuildcheck')
         self.DEFAULTSKIN = self.get_setting('defaultskin')
         self.DEFAULTNAME = self.get_setting('defaultskinname')
         self.DEFAULTIGNORE = self.get_setting('defaultskinignore')
@@ -186,8 +211,6 @@ class Config:
         self.EXTERROR = self.get_setting('errors')
         
         # View variables
-        self.SHOW17 = self.get_setting('show17')
-        self.SHOW18 = self.get_setting('show18')
         self.SHOW19 = self.get_setting('show19')
         self.SHOWADULT = self.get_setting('adult')
         self.SEPARATE = self.get_setting('separate')
@@ -217,18 +240,18 @@ class Config:
         # Notification variables
         self.NOTIFY = self.get_setting('notify')
         self.NOTEID = self.get_setting('noteid')
-        self.NOTEID = 0 if self.NOTEID == "" else int(self.NOTEID)
         self.NOTEDISMISS = self.get_setting('notedismiss')
         
         # Save Data variables
-        self.TRAKTSAVE = self.get_setting('traktlastsave')
-        self.DEBRIDSAVE = self.get_setting('debridlastsave')
-        self.LOGINSAVE = self.get_setting('loginlastsave')
+        self.TRAKTSAVE = self.get_setting('traktnextsave')
+        self.DEBRIDSAVE = self.get_setting('debridnextsave')
+        self.LOGINSAVE = self.get_setting('loginnextsave')
         self.KEEPFAVS = self.get_setting('keepfavourites')
         self.KEEPSOURCES = self.get_setting('keepsources')
         self.KEEPPROFILES = self.get_setting('keepprofiles')
         self.KEEPPLAYERCORE = self.get_setting('keepplayercore')
         self.KEEPADVANCED = self.get_setting('keepadvanced')
+        self.KEEPGUISETTINGS = self.get_setting('keepguisettings')
         self.KEEPREPOS = self.get_setting('keeprepos')
         self.KEEPSUPER = self.get_setting('keepsuper')
         self.KEEPWHITELIST = self.get_setting('keepwhitelist')
@@ -237,11 +260,10 @@ class Config:
         self.KEEPLOGIN = self.get_setting('keeplogin')
 
         # Backup variables
-        self.BACKUPLOCATION = xbmc.translatePath(self.get_setting('path') if not self.get_setting('path') == '' else self.HOME)
+        self.BACKUPLOCATION = xbmcvfs.translatePath(self.get_setting('path') if not self.get_setting('path') == '' else self.HOME)
         self.MYBUILDS = os.path.join(self.BACKUPLOCATION, 'My_Builds')
 
         # Logging variables
-        self.WIZDEBUGGING = self.get_setting('addon_debug')
         self.DEBUGLEVEL = self.get_setting('debuglevel')
         self.ENABLEWIZLOG = self.get_setting('wizardlog')
         self.CLEANWIZLOG = self.get_setting('autocleanwiz')
@@ -256,7 +278,7 @@ class Config:
         self.KEEPWIZLOG = self.get_setting('wizlog') == 'true'
         self.KEEPCRASHLOG = self.get_setting('crashlog') == 'true'
         self.LOGEMAIL = self.get_setting('email')
-        self.NEXTCLEANDATE = self.get_setting('nextcleandate')
+        self.NEXTCLEANDATE = self.get_setting('nextwizcleandate')
 
     def get_setting(self, key, id=xbmcaddon.Addon().getAddonInfo('id')):
         try:
@@ -270,20 +292,43 @@ class Config:
         except:
             return False
 
-    def open_settings(self, id=xbmcaddon.Addon().getAddonInfo('id')):
+    def open_settings(self, id=None, cat=None, set=None, activate=False):
+        offset = [(100,  200), (-100, -80)]
+        if not id:
+            id = self.ADDON_ID
+
         try:
-            return xbmcaddon.Addon(id).openSettings()
+            xbmcaddon.Addon(id).openSettings()
         except:
-            return False
+            import logging
+            logging.log('Cannot open settings for {}'.format(id), level=xbmc.LOGERROR)
+        
+        if int(self.KODIV) < 18:
+            use = 0
+        else:
+            use = 1
+
+        if cat is not None:
+            category_id = cat + offset[use][0]
+            xbmc.executebuiltin('SetFocus({})'.format(category_id))
+            if set is not None:
+                setting_id = set + offset[use][1]
+                xbmc.executebuiltin('SetFocus({})'.format(setting_id))
+                
+                if activate:
+                    xbmc.executebuiltin('SendClick({})'.format(setting_id))
+            
 
     def clear_setting(self, type):
-        build = {'buildname': '', 'buildversion': '', 'buildtheme': '', 'latestversion': '',
-                 'lastbuildcheck': '2016-01-01'}
-        install = {'extract': '', 'errors': ''}
-        default = {'defaultskinignore': 'false', 'defaultskin': '', 'defaultskinname': ''}
-        lookfeel = ['default.enablerssfeeds', 'default.font', 'default.rssedit', 'default.skincolors',
-                    'default.skintheme',
-                    'default.skinzoom', 'default.soundskin', 'default.startupwindow', 'default.stereostrength']
+        build = {'buildname': '', 'buildversion': '', 'buildtheme': '',
+                 'latestversion': '', 'nextbuildcheck': '2019-01-01 00:00:00'}
+        install = {'extract': '', 'errors': '', 'installed': ''}
+        default = {'defaultskinignore': 'false', 'defaultskin': '',
+                   'defaultskinname': ''}
+        lookfeel = ['default.enablerssfeeds', 'default.font', 'default.rssedit',
+                    'default.skincolors', 'default.skintheme',
+                    'default.skinzoom', 'default.soundskin',
+                    'default.startupwindow', 'default.stereostrength']
         if type == 'build':
             for element in build:
                 self.set_setting(element, build[element])
@@ -304,6 +349,8 @@ class Config:
         elif type == 'lookfeel':
             for element in lookfeel:
                 self.set_setting(element, '')
+        else:
+            self.set_setting(type, '')
 
 
 CONFIG = Config()

@@ -1,4 +1,6 @@
 import xbmc
+import xbmcaddon
+import xbmcgui
 import xbmcplugin
 
 import sys
@@ -10,15 +12,18 @@ except ImportError:  # Python 2
 
 from resources.libs.common.config import CONFIG
 from resources.libs.common import logging
+from resources.libs.common import tools
 from resources.libs.gui import menu
 
 advanced_settings_mode = 'advanced_settings'
+addon_installer_mode = 'addons'
 
 
 class Router:
     def __init__(self):
         self.route = None
         self.params = {}
+        tools.ensure_folders()
 
     def _log_params(self, paramstring):
         _url = sys.argv[0]
@@ -45,6 +50,7 @@ class Router:
         if mode is None:
             from resources.libs.gui.main_menu import MainMenu
             MainMenu().get_listing()
+            self._finish(handle)
 
         # SETTINGS
         elif mode == 'settings':  # OpenWizard settings
@@ -62,9 +68,11 @@ class Router:
         elif mode == 'builds':  # Builds
             from resources.libs.gui.build_menu import BuildMenu
             BuildMenu().get_listing()
+            self._finish(handle)
         elif mode == 'viewbuild':  # Builds -> "Your Build"
             from resources.libs.gui.build_menu import BuildMenu
             BuildMenu().view_build(name)
+            self._finish(handle)
         elif mode == 'buildinfo':  # Builds -> Build Info
             from resources.libs.gui.build_menu import BuildMenu
             BuildMenu().build_info(name)
@@ -74,18 +82,12 @@ class Router:
         elif mode == 'install':  # Builds -> Fresh Install/Standard Install/Apply guifix
             from resources.libs.wizard import Wizard
 
-            if action in ['fresh', 'normal']:
-                Wizard().build(action, name)
+            if action == 'build':
+                Wizard().build(name)
             elif action == 'gui':
                 Wizard().gui(name)
             elif action == 'theme':  # Builds -> "Your Build" -> "Your Theme"
                 Wizard().theme(name, url)
-        elif mode == 'addonpack':  # Install Addon Pack
-            from resources.libs import install
-            install.install_addon_pack(name, url)
-        elif mode == 'skinpack':  # Install Skin Pack
-            from resources.libs import install
-            install.install_skin(name, url)
 
         elif mode == 'maint':  # Maintenance + Maintenance -> any "Tools" section
             from resources.libs.gui.maintenance_menu import MaintenanceMenu
@@ -100,15 +102,25 @@ class Router:
                 MaintenanceMenu().backup_menu()
             elif name == 'tweaks':
                 MaintenanceMenu().tweaks_menu()
+            elif name == 'logging':
+                MaintenanceMenu().logging_menu()
             elif name is None:
                 MaintenanceMenu().get_listing()
+                
+            self._finish(handle)
 
         elif mode == 'enableaddons':  # Maintenance - > Addon Tools -> Enable/Disable Addons
             menu.enable_addons()
+            self._finish(handle)
+        elif mode == 'enableall':
+            menu.enable_addons(all=True)
         elif mode == 'toggleaddon':
             from resources.libs import db
             db.toggle_addon(name, url)
             xbmc.executebuiltin('Container.Refresh()')
+        elif mode == 'forceupdate':
+            from resources.libs import db
+            db.force_check_updates(auto=action)
         elif mode == 'togglecache':
             from resources.libs import clear
             clear.toggle_cache(name)
@@ -118,8 +130,10 @@ class Router:
             xbmc.executebuiltin('Container.Refresh()')
         elif mode == 'systeminfo':  # Maintenance -> System Tweaks/Fixes -> System Information
             menu.system_info()
+            self._finish(handle)
         elif mode == 'nettools':  # Maintenance -> Misc Maintenance -> Network Tools
             menu.net_tools()
+            self._finish(handle)
         elif mode == 'runspeedtest':  # Maintenance -> Misc Maintenance -> Network Tools -> Speed Test -> Run Speed Test
             menu.run_speed_test()
             xbmc.executebuiltin('Container.Refresh()')
@@ -131,37 +145,45 @@ class Router:
             xbmc.executebuiltin('Container.Refresh()')
         elif mode == 'viewIP':  # Maintenance -> Misc Maintenance -> Network Tools -> View IP Address & MAC Address
             menu.view_ip()
-        elif mode == 'speedtest':  # Maintenance -> Misc Maintenance -> Network Tools -> Speed Test
-            menu.speed_test()
+            self._finish(handle)
+        elif mode == 'speedtest': 
+            xbmc.executebuiltin('InstallAddon("script.speedtester")')
+            xbmc.executebuiltin('RunAddon("script.speedtester")')
         elif mode == 'apk':  # APK Installer
             menu.apk_menu(url)
-        elif mode == 'apkscrape':  # APK Installer -> Official Kodi APK's
-            menu.apk_scraper()
+            self._finish(handle)
+        elif mode == 'kodiapk':  # APK Installer -> Official Kodi APK's
+            xbmc.executebuiltin('RunScript(script.kodi.android.update)')
+        elif mode == 'fmchoose':
+            from resources.libs import install
+            install.choose_file_manager()
         elif mode == 'apkinstall':
             from resources.libs import install
             install.install_apk(name, url)
         elif mode == 'removeaddondata':  # Maintenance - > Addon Tools -> Remove Addon Data
             menu.remove_addon_data_menu()
+            self._finish(handle)
         elif mode == 'savedata':  # Save Data + Builds -> Save Data Menu
             menu.save_menu()
+            self._finish(handle)
         elif mode == 'youtube':  # "YouTube Section"
             menu.youtube_menu(url)
+            self._finish(handle)
         elif mode == 'viewVideo':  # View  Video
             from resources.libs import yt
             yt.play_video(url)
-        elif mode == 'addons':  # Addon Installer
-            menu.addon_menu(url)
-        elif mode == 'addoninstall':  # Install Addon
-            from resources.libs import install
-            install.install_addon(name, url)
         elif mode == 'trakt':  # Save Data -> Keep Trakt Data
             menu.trakt_menu()
+            self._finish(handle)
         elif mode == 'realdebrid':  # Save Data -> Keep Debrid
             menu.debrid_menu()
+            self._finish(handle)
         elif mode == 'login':  # Save Data -> Keep Login Info
             menu.login_menu()
+            self._finish(handle)
         elif mode == 'developer':  # Developer  Menu
             menu.developer()
+            self._finish(handle)
 
         # MAINTENANCE FUNCTIONS
         elif mode == 'kodi17fix':  # Misc Maintenance -> Kodi 17 Fix
@@ -172,7 +194,7 @@ class Router:
             skin.swap_us()
         elif mode == 'enabledebug':  # Misc Maintenance -> Enable Debug Logging
             logging.swap_debug()
-        elif mode == 'enabledebug':  # Misc Maintenance -> Toggle Addon Updates
+        elif mode == 'toggleupdates':  # Misc Maintenance -> Toggle Addon Updates
             from resources.libs import update
             update.toggle_addon_updates()
         elif mode == 'asciicheck':  # System Tweaks -> Scan for Non-Ascii Files
@@ -277,7 +299,6 @@ class Router:
         elif mode == 'uploadlog':  # Upload Log File
             logging.upload_log()
         elif mode == 'viewlog':  # View kodi.log
-            from resources.libs.gui import window
             logging.view_log_file()
         elif mode == 'viewwizlog':  # View wizard.log
             from resources.libs.gui import window
@@ -306,8 +327,10 @@ class Router:
 
             if not action:
                 self.route.show_menu(url=url)
+                self._finish(handle)
             elif action == advanced_settings_actions[0]:  # Advanced Settings Quick Configure
                 self.route.quick_configure()
+                self._finish(handle)
             elif action == advanced_settings_actions[1]:  # View Current Advanced Settings
                 advanced.view_current()
             elif action == advanced_settings_actions[2]:  # Remove Current Advanced Settings
@@ -318,7 +341,33 @@ class Router:
                 self.route.set_setting(category, tag, value)
             elif action == advanced_settings_actions[5]:  # Open a Section
                 self.route.show_section(tags)
+                self._finish(handle)
+                
+        # ADDON INSTALLER
+        elif mode == addon_installer_mode:
+            from resources.libs.gui import addon_menu
+            
+            self.route = addon_menu.AddonMenu()
+            addon_installer_actions = ['addon', 'skin', 'addonpack']
 
+            addonurl = self.params['addonurl'] if 'addonurl' in self.params else None
+            repository = self.params['repository'] if 'repository' in self.params else None
+            repositoryurl = self.params['repositoryurl'] if 'repositoryurl' in self.params else None
+            repositoryxml = self.params['repositoryxml'] if 'repositoryxml' in self.params else None
+            urls = [addonurl, repository, repositoryurl, repositoryxml]
+            
+            if not action:
+                self.route.show_menu(url=url)
+                self._finish(handle)
+            elif action == addon_installer_actions[0]:
+                self.route.install_addon(name, urls)
+            elif action == addon_installer_actions[1]:
+                pass
+                # self.route.install_skin(name, url)
+            elif action == addon_installer_actions[2]:
+                pass
+                # self.route.install_addon_pack(name, url)
+            
         # SAVE DATA
         elif mode == 'managedata':
             from resources.libs import save
@@ -425,8 +474,6 @@ class Router:
         elif mode == 'contact':  # Contact
             from resources.libs.gui import window
             window.show_contact(CONFIG.CONTACT)
-            
-        self._finish(handle)
         
     def _finish(self, handle):
         from resources.libs.common import directory
