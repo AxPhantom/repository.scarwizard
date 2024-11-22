@@ -17,7 +17,7 @@ ADDONTITLE = '[COLOR orange][B]Scar[/B][/COLOR]Wizard'
 BUILDERNAME = 'Macaulay'
 EXCLUDES = [ADDON_ID, 'repository.scarwizard']
 # Text File with build info in it. Please read https://github.com/a4k-openproject/plugin.program.openwizard/wiki/Installing-Builds
-BUILDFILE = "https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/builds.txt"
+BUILDFILE = "https://github.com/AxPhantom/repository.scarwizard/raw/refs/heads/master/builds.txt"
 # How often you would like it to check for build updates in days
 # 0 being every startup of kodi
 UPDATECHECK = 0
