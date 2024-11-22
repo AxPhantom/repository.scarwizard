@@ -159,7 +159,7 @@
             <checksum>https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/leia/zips/addons.xml.md5</checksum>
             <datadir zip="true">https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/leia/zips/</datadir>
         </dir>
-        <dir minversion="18.9.0">
+        <dir minversion="18.9.0" maxversion="20.9.0">
             <info compressed="false">https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/matrix/zips/addons.xml</info>
             <checksum>https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/matrix/zips/addons.xml.md5</checksum>
             <datadir zip="true">https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/matrix/zips/</datadir>
