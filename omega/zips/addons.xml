@@ -1,6 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<addons>
-<addon id="plugin.program.scarwizard" name="[COLOR orange]Scar[/COLOR]Wizard" version="3.0.0" provider-name="Macaulay">
+<addons><addon id="plugin.program.scarwizard" name="[COLOR orange]Scar[/COLOR]Wizard" version="3.0.0" provider-name="Macaulay">
     <requires>
         <import addon="xbmc.python" version="3.0.0" />
         <import addon="script.module.requests" />

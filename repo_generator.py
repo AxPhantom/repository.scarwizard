@@ -13,7 +13,6 @@ print(f"Script Version: {SCRIPT_VERSION}")
 print(f"KODI_VERSIONS: {KODI_VERSIONS}")
 print(f"IGNORE patterns: {IGNORE}")
 
-
 def convert_bytes(num):
     """
     Converts bytes to human-readable units.
@@ -22,7 +21,6 @@ def convert_bytes(num):
         if num < 1024.0:
             return f"{num:3.1f} {x}"
         num /= 1024.0
-
 
 class Generator:
     def __init__(self, release):
@@ -42,7 +40,7 @@ class Generator:
             print(f"Successfully updated {addons_xml_path}")  # DEBUG
             if self._generate_md5_file(addons_xml_path, md5_path):
                 print(f"Successfully updated {md5_path}")  # DEBUG
-                self._validate_checksum(addons_xml_path, md5_path)
+                self._validate_md5_checksum(addons_xml_path, md5_path)
 
     def _remove_binaries(self):
         print("Starting binary removal process...")  # DEBUG
@@ -101,21 +99,21 @@ class Generator:
             print(f"Error generating MD5 file for {addons_xml_path}: {e}")  # DEBUG
             return False
 
-    def _validate_checksum(self, addons_xml_path, md5_path):
-        print(f"Validating checksum for {addons_xml_path} against {md5_path}")  # DEBUG
+    def _validate_md5_checksum(self, addons_xml_path, md5_path):
+        print(f"Validating MD5 checksum between {addons_xml_path} and {md5_path}")  # DEBUG
         try:
             with open(addons_xml_path, "r", encoding="utf-8") as f:
-                actual_md5 = hashlib.md5(f.read().encode("utf-8")).hexdigest()
+                computed_md5 = hashlib.md5(f.read().encode("utf-8")).hexdigest()
             with open(md5_path, "r", encoding="utf-8") as f:
-                expected_md5 = f.read().strip()
-            if actual_md5 == expected_md5:
-                print("Checksum validation succeeded.")  # DEBUG
+                stored_md5 = f.read().strip()
+
+            if computed_md5 == stored_md5:
+                print(f"MD5 checksum validation successful: {computed_md5}")  # DEBUG
             else:
-                print("Checksum validation failed.")  # DEBUG
-                print(f"Expected: {expected_md5}")
-                print(f"Actual: {actual_md5}")
+                print(f"MD5 checksum mismatch! Computed: {computed_md5}, Stored: {stored_md5}")  # DEBUG
+                raise ValueError("MD5 checksum mismatch")
         except Exception as e:
-            print(f"Error validating checksum: {e}")  # DEBUG
+            print(f"Error validating MD5 checksum: {e}")  # DEBUG
 
     def _generate_addons_file(self, addons_xml_path):
         print("Generating addons.xml...")  # DEBUG
@@ -172,27 +170,22 @@ class Generator:
                 if not os.path.exists(zip_path):
                     print(f"ERROR: Zip file not created: {zip_path}")  # DEBUG
                 else:
-                    print(f"Zip file successfully created: {zip_path}")  # DEBUG
-
+                    print(f"Zip file successfully created: {zip_path}")
             except Exception as e:
-                print(f"Error processing addon {addon}: {e}")  # DEBUG
+                print(f"Error processing addon folder {addon}: {e}")  # DEBUG
 
         if changed:
             try:
                 addons_xml.write(addons_xml_path, encoding="utf-8", xml_declaration=True)
-
-                # Generate updated MD5 for the updated addons.xml
-                md5_path = addons_xml_path + ".md5"
-                if self._generate_md5_file(addons_xml_path, md5_path):
-                    print(f"addons.xml.md5 updated for {addons_xml_path}")
+                print(f"addons.xml successfully written to {addons_xml_path}")  # DEBUG
                 return True
             except Exception as e:
-                print(f"Error writing to {addons_xml_path}: {e}")  # DEBUG
+                print(f"Failed to write addons.xml: {e}")  # DEBUG
+                return False
         else:
-            print("No changes detected in addons.xml.")  # DEBUG
-        return False
-
+            print("No changes detected in addons.xml")  # DEBUG
+            return False
 
 if __name__ == "__main__":
-    for release in [r for r in KODI_VERSIONS if os.path.exists(r)]:
-        Generator(release)
+    for version in KODI_VERSIONS:
+        Generator(version)
