@@ -4,7 +4,7 @@ import zipfile
 from xml.etree import ElementTree
 
 SCRIPT_VERSION = 3
-KODI_VERSIONS = ["krypton", "leia", "matrix", "omega", "repo"]
+KODI_VERSIONS = ["omega", "repo"]
 IGNORE = [".git", ".github", ".gitignore", ".DS_Store", "thumbs.db", ".idea", "venv"]
 
 # Debugging: Initial Configuration
