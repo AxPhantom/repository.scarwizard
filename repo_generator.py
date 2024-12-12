@@ -4,7 +4,7 @@ import zipfile
 import shutil
 from xml.etree import ElementTree
 
-SCRIPT_VERSION = 3
+SCRIPT_VERSION = 4
 KODI_VERSIONS = ["omega", "repo"]
 IGNORE = [".git", ".github", ".gitignore", ".DS_Store", "thumbs.db", ".idea", "venv"]
 
@@ -42,6 +42,7 @@ class Generator:
             print(f"Successfully updated {addons_xml_path}")  # DEBUG
             if self._generate_md5_file(addons_xml_path, md5_path):
                 print(f"Successfully updated {md5_path}")  # DEBUG
+                self._validate_checksum(addons_xml_path, md5_path)
 
     def _remove_binaries(self):
         print("Starting binary removal process...")  # DEBUG
@@ -99,6 +100,22 @@ class Generator:
         except Exception as e:
             print(f"Error generating MD5 file for {addons_xml_path}: {e}")  # DEBUG
             return False
+
+    def _validate_checksum(self, addons_xml_path, md5_path):
+        print(f"Validating checksum for {addons_xml_path} against {md5_path}")  # DEBUG
+        try:
+            with open(addons_xml_path, "r", encoding="utf-8") as f:
+                actual_md5 = hashlib.md5(f.read().encode("utf-8")).hexdigest()
+            with open(md5_path, "r", encoding="utf-8") as f:
+                expected_md5 = f.read().strip()
+            if actual_md5 == expected_md5:
+                print("Checksum validation succeeded.")  # DEBUG
+            else:
+                print("Checksum validation failed.")  # DEBUG
+                print(f"Expected: {expected_md5}")
+                print(f"Actual: {actual_md5}")
+        except Exception as e:
+            print(f"Error validating checksum: {e}")  # DEBUG
 
     def _generate_addons_file(self, addons_xml_path):
         print("Generating addons.xml...")  # DEBUG
@@ -163,7 +180,11 @@ class Generator:
         if changed:
             try:
                 addons_xml.write(addons_xml_path, encoding="utf-8", xml_declaration=True)
-                print(f"addons.xml successfully written to {addons_xml_path}")  # DEBUG
+
+                # Generate updated MD5 for the updated addons.xml
+                md5_path = addons_xml_path + ".md5"
+                if self._generate_md5_file(addons_xml_path, md5_path):
+                    print(f"addons.xml.md5 updated for {addons_xml_path}")
                 return True
             except Exception as e:
                 print(f"Error writing to {addons_xml_path}: {e}")  # DEBUG
