@@ -1,6 +1,7 @@
 import os
 import hashlib
 import zipfile
+import shutil
 from xml.etree import ElementTree
 
 SCRIPT_VERSION = 3
