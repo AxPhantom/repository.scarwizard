@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="repository.scarwizard" name="ScarWizard Repo" version="3.0" provider-name="Macaulay">
+    <extension point="xbmc.addon.repository" name="ScarWizard Repo">
+		<dir minversion="21.0">
+            <info compressed="false">https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/omega/zips/addons.xml</info>
+            <checksum>https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/omega/zips/addons.xml.md5</checksum>
+            <datadir zip="true">https://raw.githubusercontent.com/AxPhantom/repository.scarwizard/master/omega/zips/</datadir>
+        </dir>
+    </extension>
+	
+    <extension point="xbmc.addon.metadata">
+        <summary>ScarWizard Repo</summary>
+        <description>A repository for the releases of Scar's Builds.</description>
+        <disclaimer></disclaimer>
+        <platform>all</platform>
+        <assets>
+            <icon>icon.png</icon>
+        </assets>
+    </extension>
+</addon>
