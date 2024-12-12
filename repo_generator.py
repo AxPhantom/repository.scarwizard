@@ -64,6 +64,12 @@ class Generator:
             os.makedirs(zip_folder)
 
         final_zip = os.path.join(zip_folder, f"{addon_id}-{version}.zip")
+
+        # Delete old zip file if it exists
+        if os.path.exists(final_zip):
+            print(f"Deleting old zip file: {final_zip}")  # DEBUG
+            os.remove(final_zip)
+
         print(f"Creating zip file: {final_zip}")  # DEBUG
         with zipfile.ZipFile(final_zip, "w", compression=zipfile.ZIP_DEFLATED) as zipf:
             root_len = len(os.path.dirname(os.path.abspath(addon_folder)))
@@ -140,8 +146,15 @@ class Generator:
                 addons_root.append(addon_root)
                 changed = True
 
-                # Create zip file for the addon
+                # Create zip for the addon
                 self._create_zip(addon, addon_id, version)
+
+                # Check if zip file was created
+                zip_path = os.path.join(self.zips_path, addon_id, f"{addon_id}-{version}.zip")
+                if not os.path.exists(zip_path):
+                    print(f"ERROR: Zip file not created: {zip_path}")  # DEBUG
+                else:
+                    print(f"Zip file successfully created: {zip_path}")  # DEBUG
 
             except Exception as e:
                 print(f"Error processing addon {addon}: {e}")  # DEBUG

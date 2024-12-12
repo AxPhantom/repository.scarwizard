@@ -20,7 +20,7 @@
         <description lang="en">[COLOR orange]Scar[/COLOR]Wizard offers many maintenance features, selective add-on data saving, and automated build installs.</description>
         <platform>all</platform>
         <reuselanguageinvoker>false</reuselanguageinvoker>
-        <source>https://www.github.com/AxPhantom/repository.scar/tree/master/omega/plugin.program.scarwizard/</source>
+        <source>https://www.github.com/AxPhantom/repository.scarwizard/tree/master/omega/plugin.program.scarwizard/</source>
         <news>
 2.1.0
  - New Build 'Audacity' for Kodi v21.1 Omega	
