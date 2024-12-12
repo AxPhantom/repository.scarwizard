@@ -1,9 +1,10 @@
 import os
+import shutil
 import hashlib
 import zipfile
 from xml.etree import ElementTree
 
-SCRIPT_VERSION = 3
+SCRIPT_VERSION = 2
 KODI_VERSIONS = ["krypton", "leia", "matrix", "omega", "repo"]
 IGNORE = [".git", ".github", ".gitignore", ".DS_Store", "thumbs.db", ".idea", "venv"]
 
@@ -13,13 +14,18 @@ print(f"KODI_VERSIONS: {KODI_VERSIONS}")
 print(f"IGNORE patterns: {IGNORE}")
 
 
+def _setup_colors():
+    print("Setting up colors...")  # DEBUG
+    return True
+
+
 def convert_bytes(num):
     """
-    Converts bytes to human-readable units.
+    This function will convert bytes to MB.... GB... etc
     """
     for x in ["bytes", "KB", "MB", "GB", "TB"]:
         if num < 1024.0:
-            return f"{num:3.1f} {x}"
+            return "%3.1f %s" % (num, x)
         num /= 1024.0
 
 
@@ -124,21 +130,18 @@ class Generator:
                 version = addon_root.get("version")
                 print(f"Detected Addon ID: {addon_id}, Version: {version}")  # DEBUG
 
-                # Update xbmc.python version if necessary
-                for requires in addon_root.findall("requires"):
-                    for import_tag in requires.findall("import"):
-                        if import_tag.get("addon") == "xbmc.python" and import_tag.get("version") == "2.1.0":
-                            print(f"Updating xbmc.python version from 2.1.0 to 3.0.0 for {addon_id}")  # DEBUG
-                            import_tag.set("version", "3.0.0")
-
                 # Check for existing entry and update if found
                 existing_addon = addons_root.find(addon_xpath.format(addon_id))
                 if existing_addon is not None:
                     print(f"Existing entry for {addon_id} found. Replacing it.")  # DEBUG
                     addons_root.remove(existing_addon)
+                else:
+                    print(f"No existing entry for {addon_id}. Adding new entry.")  # DEBUG
 
                 addons_root.append(addon_root)
                 changed = True
+
+                self._create_zip(addon, addon_id, version)
 
             except Exception as e:
                 print(f"Error processing addon {addon}: {e}")  # DEBUG

@@ -2,7 +2,7 @@
 <addons>
 <addon id="plugin.program.scarwizard" name="[COLOR orange]Scar[/COLOR]Wizard" version="3.0.0" provider-name="Macaulay">
     <requires>
-        <import addon="xbmc.python" version="3.0.0" />
+        <import addon="xbmc.python" version="2.1.0" />
         <import addon="script.module.requests" />
         <import addon="script.module.six" />
         <import addon="script.kodi.android.update" optional="true" version="1.1.7" />
