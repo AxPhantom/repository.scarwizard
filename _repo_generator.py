@@ -4,7 +4,7 @@ import hashlib
 import zipfile
 from xml.etree import ElementTree
 
-SCRIPT_VERSION = 2
+SCRIPT_VERSION = 3
 KODI_VERSIONS = ["krypton", "leia", "matrix", "omega", "repo"]
 IGNORE = [".git", ".github", ".gitignore", ".DS_Store", "thumbs.db", ".idea", "venv"]
 
